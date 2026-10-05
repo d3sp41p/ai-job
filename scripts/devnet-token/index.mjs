@@ -44,7 +44,7 @@ function loadIssuer() {
 
 async function ensureSol(issuer) {
   let bal = await conn.getBalance(issuer.publicKey);
-  if (bal >= 0.05 * LAMPORTS_PER_SOL) return;
+  if (bal >= 0.02 * LAMPORTS_PER_SOL) return;
   console.log("Issuer needs devnet SOL, asking the devnet faucet...");
   try {
     const sig = await conn.requestAirdrop(issuer.publicKey, 1 * LAMPORTS_PER_SOL);
@@ -54,12 +54,12 @@ async function ensureSol(issuer) {
   } catch {
     /* faucet is often rate limited */
   }
-  if (bal < 0.05 * LAMPORTS_PER_SOL) {
+  if (bal < 0.02 * LAMPORTS_PER_SOL) {
     console.log("\n>>> The automatic faucet refused. Do this once:");
     console.log("    1. Open https://faucet.solana.com (network: Devnet)");
     console.log(`    2. Paste this address: ${issuer.publicKey.toBase58()}`);
-    console.log("    3. Request 0.5 SOL, then run `node index.mjs` again.\n");
-    console.log("    (Or send 0.1 devnet SOL to it from your Phantom on Devnet.)");
+    console.log("    3. Request 0.5 SOL (0.02 is enough), then run `node index.mjs` again.\n");
+    console.log("    (Or send 0.02 devnet SOL to it from your Phantom on Devnet.)");
     process.exit(1);
   }
 }
