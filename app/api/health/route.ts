@@ -17,6 +17,12 @@ export async function GET() {
       rls: h.rls_off === 0 ? "on for every table" : `OFF on ${h.rls_off} table(s)`,
       public_key_can_read: blocked === null ? "not checked" : !blocked,
       payouts_paused: h.payouts_paused,
+      // only "is it set", never the values
+      session_secret: (process.env.SESSION_SECRET || "").trim().length >= 32 ? "set" : "missing or shorter than 32",
+      turnstile: {
+        site_key: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? "set" : "missing",
+        secret_key: process.env.TURNSTILE_SECRET_KEY ? "set" : "missing",
+      },
     }, { status: ok ? 200 : 500 });
   } catch (e) {
     const err = e as DbError;
