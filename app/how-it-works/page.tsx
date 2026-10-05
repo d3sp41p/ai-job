@@ -22,6 +22,7 @@ import {
   type Difficulty,
 } from "@/lib/config";
 import { useStats } from "@/lib/stats";
+import { fmtSol } from "@/lib/format";
 import Manager from "@/components/Manager";
 import Flywheel from "@/components/Flywheel";
 import TreasuryTank from "@/components/TreasuryTank";
@@ -215,8 +216,8 @@ export default function HowItWorks() {
           </div>
           <ol className="grid gap-3">
             {[
-              ["The pool is always 20% of the treasury.", `Treasury ${STATS.treasurySol} SOL means a salary pool of ${pool.toFixed(2)} SOL. Treasury grows, pool grows.`],
-              [`Every hour, 1/${PAYOUTS_PER_DAY} of the pool is paid out.`, `Right now that's ${hourlyPayroll(STATS.treasurySol).toFixed(3)} SOL per hour, around the clock.`],
+              ["The pool is always 20% of the treasury.", `Treasury ${fmtSol(STATS.treasurySol)} SOL means a salary pool of ${fmtSol(pool)} SOL. Treasury grows, pool grows.`],
+              [`Every hour, 1/${PAYOUTS_PER_DAY} of the pool is paid out.`, `Right now that's ${hourlyPayroll(STATS.treasurySol).toFixed(5)} SOL per hour, around the clock.`],
               ["The hourly slice is split by points.", "Everyone who finished a shift that hour gets a share that matches their points."],
               ["The next slice is counted from what's left.", "After a payout the treasury is a bit smaller, new fees top it up, and the next slice is 20% ÷ 24 of the new balance. It never runs dry."],
             ].map(([t, b]) => (

@@ -320,7 +320,7 @@ export default function OfficePage() {
               </p>
             </div>
             <p className="font-condensed text-5xl font-black mt-1" translate="no">
-              {slice.toFixed(3)} SOL
+              {slice.toFixed(slice < 0.001 ? 5 : 3)} SOL
             </p>
             <p className="text-sm text-inksoft">
               Shared by {STATS.workersThisHour} employees working this hour.

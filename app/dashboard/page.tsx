@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { shortAddr } from "@/lib/mock";
 import { useStats } from "@/lib/stats";
+import { fmtSol, solDecimals } from "@/lib/format";
 import CountUp from "@/components/CountUp";
 import { formatDuration, timeAgo, useNow } from "@/components/useNow";
 import TreasuryChart from "@/components/TreasuryChart";
@@ -34,10 +35,10 @@ export default function DashboardPage() {
         <div className="glow p-5 sm:p-7 min-w-0">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <p className="text-ink/60">Treasury</p>
-            <p className="text-sm text-marker">+{weekGrowth.toFixed(1)} SOL this week</p>
+            <p className="text-sm text-marker">{weekGrowth >= 0 ? "+" : ""}{fmtSol(weekGrowth)} SOL this week</p>
           </div>
           <p className="font-condensed text-[clamp(4rem,11vw,7.5rem)] font-black leading-none mt-1">
-            <CountUp value={STATS.treasurySol} decimals={1} suffix=" SOL" />
+            <CountUp value={STATS.treasurySol} decimals={solDecimals(STATS.treasurySol)} suffix=" SOL" />
           </p>
           <div className="mt-4 text-ink">
             <TreasuryChart data={hist} height={150} areaOpacity={0.9} />
@@ -47,7 +48,7 @@ export default function DashboardPage() {
           <div className="sheet p-5 sm:p-6">
             <p className="text-sm text-inksoft">Salary pool ({Math.round(SALARY_POOL_SHARE * 100)}% of treasury)</p>
             <p className="font-condensed text-5xl font-black mt-1">
-              <CountUp value={pool} decimals={2} suffix=" SOL" />
+              <CountUp value={pool} decimals={solDecimals(pool)} suffix=" SOL" />
             </p>
             <p className="text-sm text-inksoft mt-1">Paid out over the next 24 hours, one slice every hour.</p>
           </div>
@@ -62,7 +63,7 @@ export default function DashboardPage() {
               </p>
             </div>
             <p className="font-condensed text-5xl font-black mt-1" translate="no">
-              {slice.toFixed(3)} SOL
+              {slice.toFixed(slice < 0.001 ? 5 : 3)} SOL
             </p>
             <p className="text-sm mt-1">{STATS.workersThisHour} employees on shift right now.</p>
           </div>
@@ -72,7 +73,7 @@ export default function DashboardPage() {
       {/* Totals */}
       <dl className="mt-6 sheet grid grid-cols-2 lg:grid-cols-4">
         {([
-          ["Paid to humans", <CountUp key="a" value={STATS.totalPaidSol} decimals={2} suffix=" SOL" />],
+          ["Paid to humans", <CountUp key="a" value={STATS.totalPaidSol} decimals={solDecimals(STATS.totalPaidSol)} suffix=" SOL" />],
           ["Salaries sent", <CountUp key="b" value={STATS.payouts} />],
           ["Employees", <CountUp key="c" value={STATS.workers} />],
           ["Assignments done", <CountUp key="d" value={STATS.tasksDone} />],
@@ -94,7 +95,7 @@ export default function DashboardPage() {
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="font-condensed text-3xl font-black">Company wallets</h2>
           <p className="text-sm text-inksoft">
-            Fees earned all time: <span className="font-semibold text-ink">{STATS.feesAllTimeSol} SOL</span>. Team cut: 0.
+            Fees earned all time: <span className="font-semibold text-ink">{fmtSol(STATS.feesAllTimeSol)} SOL</span>. Team cut: 0.
           </p>
         </div>
         <dl className="mt-4 grid gap-4 md:grid-cols-2">
@@ -132,6 +133,11 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
+                {STATS.leaderboard.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="px-5 py-4 text-inksoft">Nobody has earned points in the last 24 hours. The top spot is open.</td>
+                  </tr>
+                )}
                 {STATS.leaderboard.map((r, i) => (
                   <tr key={r.address} className={`border-b border-rule last:border-0 ${i === 0 ? "bg-marker/10 text-marker" : ""}`}>
                     <td className="pl-5 pr-2 py-2.5 font-semibold">{i + 1}</td>
@@ -152,10 +158,11 @@ export default function DashboardPage() {
         <section className="sheet">
           <h2 className="px-5 pt-5 font-condensed text-3xl font-black">Latest salaries</h2>
           <ul className="mt-3">
+            {STATS.recentPayouts.length === 0 && <li className="px-5 py-4 border-t border-rule text-inksoft">No salaries sent yet. The first one goes out at the top of an hour.</li>}
             {STATS.recentPayouts.map((p) => (
               <li key={p.tx} className="px-5 py-2.5 border-t border-rule flex items-baseline justify-between gap-3 text-[15px]">
                 <span>
-                  <span className="font-semibold">{p.amountSol} SOL</span>
+                  <span className="font-semibold">{fmtSol(p.amountSol)} SOL</span>
                   <span className="text-inksoft"> to {shortAddr(p.address)}</span>
                 </span>
                 <a href={solscan(`tx/${p.tx}`)} target="_blank" rel="noreferrer" className="text-sm underline underline-offset-4 whitespace-nowrap">
