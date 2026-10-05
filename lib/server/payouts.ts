@@ -125,8 +125,10 @@ async function duePayouts(balanceLamports: number) {
   let dayRoom = Math.floor(Math.max(0, DAILY_PAYOUT_CAP_SOL - usedToday) * 1e9);
   let walletRoom = Math.max(0, balanceLamports - FEE_RESERVE_LAMPORTS);
 
+  // never pay the company's own wallets
+  const company = new Set([process.env.NEXT_PUBLIC_PAYOUT_ADDRESS, process.env.NEXT_PUBLIC_TREASURY_ADDRESS].map((x) => (x || "").trim()));
   const candidates = rows
-    .filter((r: any) => !r.wallets?.banned)
+    .filter((r: any) => !r.wallets?.banned && !company.has(r.wallet))
     .map((r: any) => ({ wallet: r.wallet as string, due: Number(r.accrued_sol) - Number(r.paid_sol) }))
     .filter((r) => r.due >= MIN_CLAIM_SOL)
     .sort((a, b) => b.due - a.due);
