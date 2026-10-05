@@ -1,0 +1,29 @@
+import { rpc, publicKeyIsBlocked, DbError } from "@/lib/server/db";
+
+export const dynamic = "force-dynamic";
+
+const EXPECTED_TABLES = 14;
+
+// Public health check. Shows only yes/no facts, never data or keys.
+export async function GET() {
+  try {
+    const h = await rpc<{ tables: number; rls_off: number; payouts_paused: boolean }>("health_check");
+    const blocked = await publicKeyIsBlocked().catch(() => null);
+    const ok = h.tables === EXPECTED_TABLES && h.rls_off === 0 && blocked !== false;
+    return Response.json({
+      ok,
+      database: "connected",
+      tables: `${h.tables}/${EXPECTED_TABLES}`,
+      rls: h.rls_off === 0 ? "on for every table" : `OFF on ${h.rls_off} table(s)`,
+      public_key_can_read: blocked === null ? "not checked" : !blocked,
+      payouts_paused: h.payouts_paused,
+    }, { status: ok ? 200 : 500 });
+  } catch (e) {
+    const err = e as DbError;
+    const hint =
+      err.code === "not_configured" ? "Add SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in Vercel, then redeploy." :
+      err.code === "PGRST202" ? "Tables not created yet: run supabase/migrations/0001_init.sql in the SQL Editor." :
+      err.status === 401 ? "The secret key is wrong." : "Unexpected database error.";
+    return Response.json({ ok: false, database: "error", hint }, { status: 500 });
+  }
+}
