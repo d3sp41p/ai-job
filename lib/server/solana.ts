@@ -48,6 +48,23 @@ export function isValidAddress(a: string): boolean {
   return bytes + zeros === 32;
 }
 
+export function decodeBase58(a: string): Buffer {
+  let n = 0n;
+  for (const c of a) {
+    const i = B58.indexOf(c);
+    if (i < 0) throw new Error("bad base58");
+    n = n * 58n + BigInt(i);
+  }
+  const out: number[] = [];
+  while (n > 0n) {
+    out.unshift(Number(n & 255n));
+    n >>= 8n;
+  }
+  let zeros = 0;
+  while (a[zeros] === "1") zeros++;
+  return Buffer.from([...new Array(zeros).fill(0), ...out]);
+}
+
 // ---------- JSON-RPC ----------
 async function rpc<T>(method: string, params: unknown[]): Promise<T> {
   let res: Response;

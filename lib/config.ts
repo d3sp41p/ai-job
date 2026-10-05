@@ -11,6 +11,11 @@ export const MIN_HOLD = TOTAL_SUPPLY * 0.0001; // 0.01% of supply = 100,000 toke
 export const MIN_CLAIM_SOL = 0.01;
 export const UNCLAIMED_EXPIRY_DAYS = 30;
 
+// ---- Anti-abuse ----
+export const MAX_ADDRESSES_PER_DEVICE = 2; // different payroll addresses one device may use in 24h
+export const MAX_ADDRESSES_PER_IP = 4; // same, per network (a bit higher: homes, offices, mobile carriers share IPs)
+export const LOCK_NONCE_MINUTES = 5; // a "Lock my address" signature request expires after this
+
 // ---- Economy ----
 // 100% of creator fees go to the treasury. Nothing goes to the team.
 export const SALARY_POOL_SHARE = 0.2; // salary pool is always 20% of the treasury

@@ -9,6 +9,7 @@ import Link from "next/link";
 import { cleanName, isSolanaAddress, useEmployee } from "@/lib/wallet";
 import { MIN_HOLD, TOKEN_TICKER } from "@/lib/config";
 import { shortAddr } from "@/lib/mock";
+import { hasWallet, openInPhantom } from "@/lib/lockClient";
 
 export default function ConnectDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const emp = useEmployee();
@@ -17,6 +18,8 @@ export default function ConnectDialog({ open, onClose }: { open: boolean; onClos
   const [editName, setEditName] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [mode, setMode] = useState<"enter" | "lock" | "locking">("enter");
+  const [busy, setBusy] = useState(false);
+  const [lockTarget, setLockTarget] = useState(""); // address to lock (may not be in the session yet)
 
   if (!open) return null;
 
@@ -24,20 +27,53 @@ export default function ConnectDialog({ open, onClose }: { open: boolean; onClos
     setEditName(null);
     setMode("enter");
     setError("");
+    setLockTarget("");
     onClose();
   };
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const a = value.trim();
     if (!isSolanaAddress(a)) {
       setError("That doesn't look like a Solana address. Paste the full address from your wallet app.");
       return;
     }
-    emp.setAddress(a, name);
+    setBusy(true);
+    const r = await emp.setAddress(a, name);
+    setBusy(false);
+    if (!r.ok) {
+      if (r.code === "locked_elsewhere") {
+        setLockTarget(a);
+        setMode("lock");
+      }
+      setError(r.error);
+      return;
+    }
     emp.say(cleanName(name) ? "Welcome aboard, {name}. I already know more about you than your last boss." : "Welcome aboard. No name? Fine. I'll call you human.");
     setValue("");
     setName("");
+    close();
+  };
+
+  const doLock = async () => {
+    const target = lockTarget || emp.address;
+    if (!hasWallet()) {
+      if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
+        openInPhantom();
+        return;
+      }
+      setError("No wallet app found. Install Phantom, Solflare or Backpack in this browser, then try again.");
+      return;
+    }
+    setError("");
+    setMode("locking");
+    const r = await emp.lockAddress(target);
+    if (!r.ok) {
+      setMode("lock");
+      setError(r.error);
+      return;
+    }
+    emp.say("Signature received. This address now answers only to you, {name}.");
     close();
   };
 
@@ -65,10 +101,15 @@ export default function ConnectDialog({ open, onClose }: { open: boolean; onClos
             <p className="mt-2 font-mono text-sm break-all text-inksoft">{emp.address}</p>
             <form
               className="mt-4 grid gap-2"
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
-                emp.setName(editName ?? emp.name);
+                const r = await emp.setName(editName ?? emp.name);
+                if (!r.ok) {
+                  setError(r.error);
+                  return;
+                }
                 setEditName(null);
+                setError("");
                 emp.say("Noted, {name}. Your file has been updated.");
               }}
             >
@@ -85,6 +126,7 @@ export default function ConnectDialog({ open, onClose }: { open: boolean; onClos
                 <button className="btn btn-plain !py-2 text-sm">Save</button>
               </div>
             </form>
+            {error && <p className="mt-2 text-sm text-stamp">{error}</p>}
             <div className="mt-4 rounded-2xl bg-raise p-4">
               <p className="font-semibold">{emp.locked ? "Locked to this device" : "Not locked"}</p>
               <p className="mt-1 text-sm text-inksoft">
@@ -93,7 +135,7 @@ export default function ConnectDialog({ open, onClose }: { open: boolean; onClos
                   : "Anyone who pastes your address can work for it. They can't take your money, but they could use up your shifts."}
               </p>
               {!emp.locked && (
-                <button className="btn btn-plain mt-3 !py-2 text-sm" onClick={() => setMode("lock")}>
+                <button className="btn btn-plain mt-3 !py-2 text-sm" onClick={() => { setError(""); setMode("lock"); }}>
                   Lock my address
                 </button>
               )}
@@ -115,10 +157,11 @@ export default function ConnectDialog({ open, onClose }: { open: boolean; onClos
           </>
         ) : mode === "lock" || mode === "locking" ? (
           <>
-            <h2 className="font-condensed text-3xl font-black">Lock {shortAddr(emp.address)}</h2>
+            <h2 className="font-condensed text-3xl font-black">Lock {shortAddr(lockTarget || emp.address)}</h2>
             <p className="mt-2 text-inksoft">
-              Your wallet app will ask you to sign a short message once. After that, only this device can work under
-              your address.
+              {lockTarget
+                ? "This address is locked to another device. If it's yours, sign a short message with the wallet that holds it to work from here too."
+                : "Your wallet app will ask you to sign a short message once. After that, only your signed devices can work under your address."}
             </p>
             <p className="mt-3 rounded-2xl bg-ok/10 text-ok p-3 text-sm">
               Signing a message is free and does not give access to your funds. It is not a transaction.
@@ -127,21 +170,15 @@ export default function ConnectDialog({ open, onClose }: { open: boolean; onClos
               <button
                 className="btn btn-primary flex-1"
                 disabled={mode === "locking"}
-                onClick={() => {
-                  setMode("locking");
-                  setTimeout(() => {
-                    emp.lockAddress();
-                    close();
-                  }, 1200);
-                }}
+                onClick={doLock}
               >
                 {mode === "locking" ? "Waiting for your wallet…" : "Sign and lock"}
               </button>
-              <button className="btn btn-plain" onClick={() => setMode("enter")}>
+              <button className="btn btn-plain" onClick={() => { setError(""); setLockTarget(""); setMode("enter"); }}>
                 Back
               </button>
             </div>
-            <p className="mt-4 text-xs text-inksoft">Preview build: no wallet is touched.</p>
+            {error && <p className="mt-3 text-sm text-stamp">{error}</p>}
           </>
         ) : (
           <>
@@ -186,7 +223,7 @@ export default function ConnectDialog({ open, onClose }: { open: boolean; onClos
                 autoComplete="nickname"
               />
               </div>
-              <button className="btn btn-marker mt-2">Start working</button>
+              <button className="btn btn-marker mt-2" disabled={busy}>{busy ? "Checking your file…" : "Start working"}</button>
             </form>
             <ul className="mt-5 grid gap-1.5 text-sm text-inksoft">
               <li>You need at least {MIN_HOLD.toLocaleString("en-US")} {TOKEN_TICKER} on this address to get paid.</li>

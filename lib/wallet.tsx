@@ -4,9 +4,12 @@
 // the server reads the balance on-chain and pays salaries to that address automatically.
 // In production every number here comes from the server (see CLAUDE.md).
 
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { COOLDOWN_MINUTES, MIN_CLAIM_SOL, computePoints, type Difficulty } from "./config";
-import { fakeAddress, mockResume } from "./mock";
+import { fakeAddress } from "./mock";
+import { signAndLock, type LockResult } from "./lockClient";
+
+export type AddressResult = { ok: true } | { ok: false; error: string; code?: string };
 
 export const PENDING_MINUTES = 15; // guest shift waits this long for an address
 
@@ -42,10 +45,11 @@ type EmployeeState = {
 
 type Ctx = EmployeeState & {
   isGuest: boolean;
-  setAddress: (a: string, name?: string) => void;
-  setName: (n: string) => void;
+  setAddress: (a: string, name?: string) => Promise<AddressResult>;
+  setName: (n: string) => Promise<AddressResult>;
   forgetAddress: () => void;
-  lockAddress: () => void;
+  lockAddress: (address?: string) => Promise<LockResult>;
+  ready: boolean; // server session loaded
   startShift: () => void;
   recordResult: (e: Omit<HistoryEntry, "id" | "at">) => void;
   setPending: (p: Pending | null) => void;
@@ -73,67 +77,130 @@ const initial: EmployeeState = {
   managerLine: { text: "", id: 0 },
 };
 
-// Sample history shown once an address is added (preview only)
-function sampleFor(address: string): Partial<EmployeeState> {
-  const r = mockResume(address);
-  return {
-    balance: Math.max(r.balance, 1_250_000),
-    daysHeld: 6,
-    tasksCompleted: 29, // preview: one good shift away from a promotion
-    shiftsToday: 5,
-    unpaidSol: 0.142,
-    paidSol: 0.31,
-    history: [
-      { id: 3, at: Date.now() - 1000 * 60 * 95, game: "Repair the Circuit Board", difficulty: "hard", performance: 0.8, points: 124.8 },
-      { id: 2, at: Date.now() - 1000 * 60 * 160, game: "Fix the Wiring", difficulty: "medium", performance: 0.42, points: 0 },
-      { id: 1, at: Date.now() - 1000 * 60 * 260, game: "Take Out the Trash", difficulty: "easy", performance: 0.92, points: 23.9 },
-    ],
-  };
+// Live numbers for an address: balance and streak from the chain, work record from our DB
+async function fetchWallet(address: string): Promise<Partial<EmployeeState>> {
+  try {
+    const res = await fetch(`/api/wallet/${address}`);
+    if (!res.ok) return {};
+    const w = await res.json();
+    return {
+      balance: Number(w.balance) || 0,
+      daysHeld: Number(w.daysHeld) || 0,
+      tasksCompleted: Number(w.tasksCompleted) || 0,
+      paidSol: Number(w.earnedSol) || 0,
+      unpaidSol: Number(w.unpaidSol) || 0,
+    };
+  } catch {
+    return {};
+  }
+}
+
+async function postJson(url: string, body?: unknown, method = "POST") {
+  const res = await fetch(url, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  return { ok: res.ok, data };
 }
 
 const EmployeeContext = createContext<Ctx | null>(null);
 
 export function EmployeeProvider({ children }: { children: ReactNode }) {
   const [s, setS] = useState<EmployeeState>(initial);
+  const [ready, setReady] = useState(false);
+
+  const say = useCallback((text: string) => setS((p) => ({ ...p, managerLine: { text, id: p.managerLine.id + 1 } })), []);
+
+  // restore this device's session (address, name, lock) on load
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/session");
+        const sess = await res.json();
+        if (alive && res.ok && sess.address) {
+          const live = await fetchWallet(sess.address);
+          if (!alive) return;
+          setS((p) => ({ ...p, ...live, address: sess.address, name: sess.name ?? "", locked: !!sess.lockedHere }));
+        }
+      } catch {
+        /* stay a guest */
+      } finally {
+        if (alive) setReady(true);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const applyAddress = async (a: string, serverName: string | null, lockedHere: boolean) => {
+    const live = await fetchWallet(a);
+    setS((p) => {
+      let next: EmployeeState = {
+        ...p,
+        ...live,
+        address: a,
+        name: serverName ?? p.name,
+        locked: lockedHere,
+        history: a === p.address ? p.history : [],
+        pending: null,
+        redeemed: null,
+      };
+      // PREVIEW until step 6: a guest shift from the last 15 minutes is credited locally.
+      // Step 6 moves this to the server (guest_shifts table).
+      if (p.pending && Date.now() - p.pending.at < PENDING_MINUTES * 60_000) {
+        const pts = computePoints(p.pending.difficulty, p.pending.performance, next.balance, next.daysHeld, next.shiftsToday);
+        next = {
+          ...next,
+          tasksCompleted: next.tasksCompleted + (pts.total > 0 ? 1 : 0),
+          pointsThisHour: Math.round((next.pointsThisHour + pts.total) * 10) / 10,
+          shiftsToday: next.shiftsToday + 1,
+          history: [
+            { id: Date.now(), at: p.pending.at, game: p.pending.game, difficulty: p.pending.difficulty, performance: p.pending.performance, points: pts.total },
+            ...next.history,
+          ],
+          redeemed: { game: p.pending.game, points: pts.total, id: Date.now() },
+        };
+      }
+      return next;
+    });
+  };
 
   const value: Ctx = {
     ...s,
+    ready,
     isGuest: !s.address,
-    setName: (n) => setS((p) => ({ ...p, name: cleanName(n) })),
-    setAddress: (a, name) =>
-      setS((p) => {
-        const sample = sampleFor(a);
-        let next: EmployeeState = {
-          ...p,
-          ...sample,
-          address: a,
-          name: name !== undefined && cleanName(name) ? cleanName(name) : p.name,
-          locked: false,
-          history: [...p.history, ...(sample.history ?? [])],
-          pointsThisHour: p.pointsThisHour,
-          cooldownEndsAt: p.cooldownEndsAt,
-          pending: null,
-          redeemed: null,
-        };
-        // A guest shift finished in the last 15 minutes is credited to this address
-        if (p.pending && Date.now() - p.pending.at < PENDING_MINUTES * 60_000) {
-          const pts = computePoints(p.pending.difficulty, p.pending.performance, next.balance, next.daysHeld, next.shiftsToday);
-          next = {
-            ...next,
-            tasksCompleted: next.tasksCompleted + (pts.total > 0 ? 1 : 0),
-            pointsThisHour: Math.round((next.pointsThisHour + pts.total) * 10) / 10,
-            shiftsToday: next.shiftsToday + 1,
-            history: [
-              { id: Date.now(), at: p.pending.at, game: p.pending.game, difficulty: p.pending.difficulty, performance: p.pending.performance, points: pts.total },
-              ...next.history,
-            ],
-            redeemed: { game: p.pending.game, points: pts.total, id: Date.now() },
-          };
-        }
-        return next;
-      }),
-    forgetAddress: () => setS((p) => ({ ...initial, cooldownEndsAt: p.cooldownEndsAt, managerLine: p.managerLine })),
-    lockAddress: () => setS((p) => ({ ...p, locked: true })),
+    setName: async (n) => {
+      const { ok, data } = await postJson("/api/session/name", { name: n });
+      if (!ok) {
+        say(data.error || "HR lost your paperwork. Try again.");
+        return { ok: false, error: data.error || "Try again." };
+      }
+      setS((p) => ({ ...p, name: data.name ?? "" }));
+      return { ok: true };
+    },
+    setAddress: async (a, name) => {
+      const { ok, data } = await postJson("/api/session/address", { address: a.trim(), name: name ? cleanName(name) : "" });
+      if (!ok) {
+        say(data.error || "HR couldn't process that address.");
+        return { ok: false, error: data.error || "Try again.", code: data.code };
+      }
+      await applyAddress(data.address, data.name, !!data.lockedHere);
+      return { ok: true };
+    },
+    forgetAddress: () => {
+      postJson("/api/session/address", undefined, "DELETE");
+      setS((p) => ({ ...initial, cooldownEndsAt: p.cooldownEndsAt, managerLine: p.managerLine }));
+    },
+    lockAddress: async (address) => {
+      const target = address || s.address;
+      const r = await signAndLock(target);
+      if (r.ok) await applyAddress(r.address, null, true);
+      return r;
+    },
     startShift: () => setS((p) => ({ ...p, cooldownEndsAt: Date.now() + COOLDOWN_MINUTES * 60_000 })),
     recordResult: (e) =>
       setS((p) => ({
@@ -152,7 +219,7 @@ export function EmployeeProvider({ children }: { children: ReactNode }) {
       return { amount, tx };
     },
     skipCooldown: () => setS((p) => ({ ...p, cooldownEndsAt: null })),
-    say: (text) => setS((p) => ({ ...p, managerLine: { text, id: p.managerLine.id + 1 } })),
+    say,
   };
 
   return <EmployeeContext.Provider value={value}>{children}</EmployeeContext.Provider>;

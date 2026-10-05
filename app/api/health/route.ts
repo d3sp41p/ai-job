@@ -2,7 +2,7 @@ import { rpc, publicKeyIsBlocked, DbError } from "@/lib/server/db";
 
 export const dynamic = "force-dynamic";
 
-const EXPECTED_TABLES = 14;
+const EXPECTED_TABLES = 15;
 
 // Public health check. Shows only yes/no facts, never data or keys.
 export async function GET() {
