@@ -10,6 +10,8 @@ import PayTicker from "@/components/PayTicker";
 import { TOKEN_NAME } from "@/lib/config";
 
 export const metadata: Metadata = {
+  // absolute links for share images (X, Telegram). Override with NEXT_PUBLIC_SITE_URL if the domain changes.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.hiredby.fun"),
   title: TOKEN_NAME,
   description: "AI took your job. Now it's hiring. Hold the coin, take assignments, get paid in SOL.",
 };

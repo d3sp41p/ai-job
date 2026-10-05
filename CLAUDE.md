@@ -222,7 +222,8 @@ CRON_SECRET=
 PAYOUT держит ~0.05 SOL, крошечные `MAX_PAYOUT_SOL` / `DAILY_PAYOUT_CAP_SOL`, выплаты на паузе по умолчанию.
 Пока монеты нет, `NEXT_PUBLIC_TOKEN_MINT` = BONK (DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263), только для чтения.
 
-- [x] HANDOFF 1: GitHub d3sp41p/ai-job, Vercel https://ai-job-kappa.vercel.app. Коммиты подписывать
+- [x] HANDOFF 1: GitHub d3sp41p/ai-job, Vercel https://ai-job-kappa.vercel.app, основной домен https://www.hiredby.fun
+      (hiredby.fun → 308 на www; `metadataBase` в `app/layout.tsx`, переопределяется NEXT_PUBLIC_SITE_URL). Коммиты подписывать
       автором `d3sp41p <nikitoscallofduty@gmail.com>`, иначе Vercel Hobby блокирует деплой.
 - [x] HANDOFF 2: `supabase/migrations/0001_init.sql` (14 таблиц, RLS без политик, revoke у anon). Клиент БД:
       `lib/server/db.ts` (PostgREST через fetch, без supabase-js). Проверка: `/api/health`.
