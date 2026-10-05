@@ -45,7 +45,7 @@ export function cleanDisplayName(raw: unknown): string | null {
   if (typeof raw !== "string") return null;
   const s = raw.replace(/[^\p{L}\p{N} ._-]/gu, "").replace(/\s+/g, " ").trim().slice(0, 20);
   if (!s) return null;
-  const flat = s.toLowerCase().replace(/[^a-z]/g, "").replace(/0/g, "o").replace(/1/g, "i");
+  const flat = s.toLowerCase().replace(/0/g, "o").replace(/[1!|]/g, "i").replace(/3/g, "e").replace(/4/g, "a").replace(/5/g, "s").replace(/[^a-z]/g, "");
   if (BLOCKED.some((w) => flat.includes(w))) return null;
   return s;
 }

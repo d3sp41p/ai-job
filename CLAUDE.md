@@ -230,14 +230,14 @@ PAYOUT держит ~0.05 SOL, крошечные `MAX_PAYOUT_SOL` / `DAILY_PAYO
 - [~] HANDOFF 4: `lib/server/solana.ts` (Helius RPC + Enhanced Tx, стаж по tokenBalanceChanges),
       `lib/server/hold.ts` (кеш 10 мин, balance_checks), `/api/wallet/[address]`, `/api/treasury`, страница Resumes
       на живых данных. Казна проверена. Бонус/стаж на кошельке с монетой ещё не проверены.
-- [~] HANDOFF 5: код залит. `lib/server/session.ts` (подписанная httpOnly-кука, hash IP), `lib/server/workers.ts`
+- [x] HANDOFF 5: `lib/server/session.ts` (подписанная httpOnly-кука, hash IP), `lib/server/workers.ts`
       (лимит 2 адреса/устройство, 4/IP в сутки, бан, lock), `lib/server/guard.ts` (rate limit через
       `hit_rate_limit`, Turnstile, фильтр имён, проверка ed25519), `/api/session`, `/api/session/address`,
       `/api/session/name`, `/api/lock/nonce`, `/api/lock/verify`, `lib/lockClient.ts`, `components/Turnstile.tsx`.
-      `lib/wallet.tsx` теперь берёт адрес/имя/lock с сервера, `sampleFor` удалён.
-      Осталось от команды: запустить `supabase/migrations/0002_sessions.sql`, добавить `SESSION_SECRET`
-      (Secret, 64 hex), ключи Turnstile; затем проверить вход, лимиты и Lock на сайте.
-      Гостевая смена пока засчитывается на клиенте: перенос на сервер в шаге 6.
+      Миграция 0002 запущена, SESSION_SECRET и ключи Turnstile в Vercel (`/api/health` показывает set/missing).
+      Проверено на проде 2026-10-05: новая кука, плохой адрес, имя, лимит 2 адреса на устройство,
+      поддельная кука отбрасывается, Lock (неверная подпись 401, верная — locked, повтор nonce отклонён,
+      другое устройство получает locked_elsewhere). Гостевая смена пока на клиенте: переезжает на сервер в шаге 6.
 - [ ] HANDOFF 6–12.
 
 Переменные в Vercel уже есть: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY,
