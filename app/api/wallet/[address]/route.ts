@@ -20,6 +20,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ address: strin
       code === "not_configured" || code === "bad_key" ? "Chain reader isn't configured." :
       code === "rate_limited" ? "Too many lookups right now. Try again in a minute." :
       "Couldn't read the chain right now. Try again.";
-    return Response.json({ error: msg, code }, { status: code === "rate_limited" ? 429 : 503 });
+    const detail = String((e as Error)?.message || "").slice(0, 200);
+    return Response.json({ error: msg, code, detail }, { status: code === "rate_limited" ? 429 : 503 });
   }
 }
