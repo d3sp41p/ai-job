@@ -1,4 +1,5 @@
 import { ensureSession, writeSession, ipHash } from "@/lib/server/session";
+import { redeemGuestShift } from "@/lib/server/shifts";
 import { assignAddress, lockState, WorkerError } from "@/lib/server/workers";
 import { allow, tooMany, cleanDisplayName } from "@/lib/server/guard";
 import { isValidAddress } from "@/lib/server/solana";
@@ -22,7 +23,9 @@ export async function POST(req: Request) {
     const s = await ensureSession();
     await assignAddress(s, address, { name });
     await writeSession({ d: s.d, a: address });
-    return Response.json({ address, name: name ?? null, ...(await lockState(address, s.d)) });
+    // a guest shift from the last 15 minutes is credited to this address now
+    const redeemed = await redeemGuestShift(s, address).catch(() => null);
+    return Response.json({ address, name: name ?? null, ...(await lockState(address, s.d)), redeemed });
   } catch (e) {
     if (e instanceof WorkerError) return Response.json({ error: e.message, code: e.code }, { status: e.status });
     return Response.json({ error: "Couldn't save your address. Try again." }, { status: 503 });

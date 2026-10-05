@@ -74,17 +74,21 @@ export default function OfficePage() {
   const paidLeft = Math.max(0, PAID_SHIFTS_PER_DAY - emp.shiftsToday);
   const tasksLeft = rank.next ? rank.next.min - emp.tasksCompleted : 0;
 
-  const pendingLeft = emp.pending ? emp.pending.at + PENDING_MINUTES * 60_000 - now : 0;
+  const pendingLeft = emp.pending ? emp.pending.expiresAt - now : 0;
   const pendingAlive = !!emp.pending && pendingLeft > 0;
 
-  const addAddress = (e: React.FormEvent) => {
+  const addAddress = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isSolanaAddress(guestAddr)) {
       setGuestErr("That doesn't look like a Solana address. Paste the full address from your wallet app.");
       return;
     }
-    emp.setAddress(guestAddr.trim(), guestName);
-    emp.say(pendingAlive ? "There you are, {name}. Your shift has been added to the payroll." : pick(LINES.greeting));
+    const r = await emp.setAddress(guestAddr.trim(), guestName);
+    if (!r.ok) {
+      setGuestErr(r.error);
+      return;
+    }
+    emp.say(pendingAlive ? "There you are, {name}. Your shift has been sent to the payroll." : pick(LINES.greeting));
     setGuestAddr("");
     setGuestName("");
     setGuestErr("");
@@ -160,7 +164,11 @@ export default function OfficePage() {
         <p className="lg:col-span-2 rounded-2xl bg-ok/10 text-ok px-5 py-3 font-semibold">
           {emp.redeemed.points > 0
             ? `Your guest shift (${emp.redeemed.game}) was added: +${emp.redeemed.points} points.`
-            : `Your guest shift (${emp.redeemed.game}) scored below 50%, so it earned nothing. Try again in 30 minutes.`}
+            : emp.redeemed.reason === "no_coins"
+              ? `Your guest shift (${emp.redeemed.game}) wasn't paid: this address holds less than ${MIN_HOLD.toLocaleString("en-US")} coins.`
+              : emp.redeemed.reason === "cooldown"
+                ? `Your guest shift (${emp.redeemed.game}) wasn't paid: this address already worked a shift in that half hour.`
+                : `Your guest shift (${emp.redeemed.game}) earned nothing this time.`}
         </p>
       )}
       {/* Employee badge */}
@@ -238,9 +246,6 @@ export default function OfficePage() {
                   {formatDuration(emp.cooldownEndsAt! - now)}
                 </p>
                 <p className="text-inksoft">until the AI needs you again.</p>
-                <button onClick={emp.skipCooldown} className="mt-2 text-sm underline underline-offset-4 text-stamp">
-                  Skip break (preview only)
-                </button>
               </div>
             </div>
           ) : (
@@ -265,7 +270,7 @@ export default function OfficePage() {
             </div>
           )}
           <details className="mt-5 rounded-2xl border border-dashed border-rule p-3">
-            <summary className="cursor-pointer text-sm text-stamp">Try a specific job (preview only)</summary>
+            <summary className="cursor-pointer text-sm text-inksoft">Practice a specific job (unpaid, no break)</summary>
             <div className="mt-3 grid gap-2 sm:grid-cols-3">
               {(Object.keys(DIFFICULTY_INFO) as Difficulty[]).map((d) => (
                 <div key={d} className="grid gap-1.5">
@@ -275,7 +280,6 @@ export default function OfficePage() {
                       key={g.id}
                       className="text-left text-sm rounded-xl bg-raise px-3 py-2 hover:bg-rule"
                       onClick={() => {
-                        emp.skipCooldown();
                         setForcedGame(g.id);
                         setShift(d);
                       }}
@@ -391,9 +395,9 @@ export default function OfficePage() {
                     <td className="px-5 py-2.5 whitespace-nowrap text-inksoft">{timeAgo(h.at, now)}</td>
                     <td className="px-2 py-2.5 whitespace-nowrap">{h.game}</td>
                     <td className="px-2 py-2.5 whitespace-nowrap">{DIFFICULTY_INFO[h.difficulty].shift}</td>
-                    <td className="px-2 py-2.5 text-right">{Math.round(h.performance * 100)}%</td>
+                    <td className="px-2 py-2.5 text-right">{h.status === "abandoned" ? "—" : `${Math.round(h.performance * 100)}%`}</td>
                     <td className={`px-5 py-2.5 text-right font-semibold ${h.points === 0 ? "text-stamp" : ""}`}>
-                      {h.points === 0 ? "Rejected" : `+${h.points}`}
+                      {h.status === "abandoned" ? "Abandoned" : h.points === 0 ? "No pay" : `+${h.points}`}
                     </td>
                   </tr>
                 ))}

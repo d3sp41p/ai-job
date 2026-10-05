@@ -1,4 +1,5 @@
 import { ensureSession, writeSession, ipHash } from "@/lib/server/session";
+import { redeemGuestShift } from "@/lib/server/shifts";
 import { allow, tooMany, verifyWalletSignature } from "@/lib/server/guard";
 import { assignAddress, lockState, WorkerError } from "@/lib/server/workers";
 import { update, insert } from "@/lib/server/db";
@@ -39,7 +40,8 @@ export async function POST(req: Request) {
     await assignAddress(s, row.address, { proven: true });
     await insert("address_locks", { address: row.address, device_id: s.d }, "address,device_id");
     await writeSession({ d: s.d, a: row.address });
-    return Response.json({ address: row.address, ...(await lockState(row.address, s.d)) });
+    const redeemed = await redeemGuestShift(s, row.address).catch(() => null);
+    return Response.json({ address: row.address, ...(await lockState(row.address, s.d)), redeemed });
   } catch (e) {
     if (e instanceof WorkerError) return Response.json({ error: e.message, code: e.code }, { status: e.status });
     return Response.json({ error: "Couldn't lock the address. Try again." }, { status: 503 });

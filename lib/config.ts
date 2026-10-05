@@ -15,6 +15,14 @@ export const UNCLAIMED_EXPIRY_DAYS = 30;
 export const MAX_ADDRESSES_PER_DEVICE = 2; // different payroll addresses one device may use in 24h
 export const MAX_ADDRESSES_PER_IP = 4; // same, per network (a bit higher: homes, offices, mobile carriers share IPs)
 export const LOCK_NONCE_MINUTES = 5; // a "Lock my address" signature request expires after this
+export const SHIFTS_PER_IP = 6; // shifts one network may start per cooldown window
+export const SHIFT_EXPIRES_MINUTES = 10; // a started shift must be handed in within this time
+// fastest believable shift (from start to result); faster results are rejected
+export const MIN_SHIFT_SECONDS: Record<"easy" | "medium" | "hard", number> = { easy: 3, medium: 6, hard: 8 };
+
+// ---- Guests ----
+export const PENDING_MINUTES = 15; // a guest's passed shift waits this long for an address
+export const GUEST_WINDOW_MINUTES = 30; // only the first passed guest shift in this window can be paid
 
 // ---- Economy ----
 // 100% of creator fees go to the treasury. Nothing goes to the team.

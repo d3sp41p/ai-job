@@ -31,7 +31,8 @@ const toB64 = (bytes: Uint8Array) => {
   return btoa(s);
 };
 
-export type LockResult = { ok: true; address: string } | { ok: false; error: string };
+export type Redeemed = { game: string; points: number; reason: "cooldown" | "no_coins" | "low_score" | null } | null;
+export type LockResult = { ok: true; address: string; redeemed: Redeemed } | { ok: false; error: string };
 
 export async function signAndLock(address: string): Promise<LockResult> {
   const p = findProvider();
@@ -65,5 +66,5 @@ export async function signAndLock(address: string): Promise<LockResult> {
   });
   const body = await v.json().catch(() => ({}));
   if (!v.ok) return { ok: false, error: body.error || "Couldn't lock the address." };
-  return { ok: true, address: body.address };
+  return { ok: true, address: body.address, redeemed: body.redeemed ?? null };
 }
