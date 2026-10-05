@@ -215,4 +215,31 @@ CRON_SECRET=
 - Дизайн v2: тёмная тема «ночная смена». Цвета в `tailwind.config.ts` (paper/sheet/raise/ink/inksoft/rule/stamp/marker), классы карточек и кнопок в `app/globals.css` (`.sheet`, `.glow`, `.btn-*`, в @layer components). Шрифты локально через @fontsource: Bricolage Grotesque (заголовки, класс `font-condensed` оставлен по историческим причинам), Geist (текст), Geist Mono (тикер, адреса). Модалки, которые открываются из шапки или из анимированных блоков, рендерить через portal в body. TypeScript закреплён на версии 5 (Next 15 не работает с TS 7).
 - Статичное превью: `PREVIEW_EXPORT=1 npx next build` кладёт сайт в папку `out/`.
 - Защита от падения при автопереводе браузера: скрипт TRANSLATE_GUARD в `app/layout.tsx`, живые цифры помечены translate="no". Не удалять.
-- Дальше: этап 1 (деплой на Vercel), затем этап 2.
+- Дальше: см. «Прогресс» ниже.
+
+## Прогресс (обновлено 2026-10-05)
+Решение команды: devnet НЕ используем. Тестируем на mainnet на копейках до запуска монеты:
+PAYOUT держит ~0.05 SOL, крошечные `MAX_PAYOUT_SOL` / `DAILY_PAYOUT_CAP_SOL`, выплаты на паузе по умолчанию.
+Пока монеты нет, `NEXT_PUBLIC_TOKEN_MINT` = BONK (DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263), только для чтения.
+
+- [x] HANDOFF 1: GitHub d3sp41p/ai-job, Vercel https://ai-job-kappa.vercel.app. Коммиты подписывать
+      автором `d3sp41p <nikitoscallofduty@gmail.com>`, иначе Vercel Hobby блокирует деплой.
+- [x] HANDOFF 2: `supabase/migrations/0001_init.sql` (14 таблиц, RLS без политик, revoke у anon). Клиент БД:
+      `lib/server/db.ts` (PostgREST через fetch, без supabase-js). Проверка: `/api/health`.
+- [x] HANDOFF 3: заменён mainnet + BONK. `scripts/devnet-token` больше не нужен.
+- [~] HANDOFF 4: `lib/server/solana.ts` (Helius RPC + Enhanced Tx, стаж по tokenBalanceChanges),
+      `lib/server/hold.ts` (кеш 10 мин, balance_checks), `/api/wallet/[address]`, `/api/treasury`, страница Resumes
+      на живых данных. Казна проверена. Бонус/стаж на кошельке с монетой ещё не проверены.
+- [~] HANDOFF 5: код залит. `lib/server/session.ts` (подписанная httpOnly-кука, hash IP), `lib/server/workers.ts`
+      (лимит 2 адреса/устройство, 4/IP в сутки, бан, lock), `lib/server/guard.ts` (rate limit через
+      `hit_rate_limit`, Turnstile, фильтр имён, проверка ed25519), `/api/session`, `/api/session/address`,
+      `/api/session/name`, `/api/lock/nonce`, `/api/lock/verify`, `lib/lockClient.ts`, `components/Turnstile.tsx`.
+      `lib/wallet.tsx` теперь берёт адрес/имя/lock с сервера, `sampleFor` удалён.
+      Осталось от команды: запустить `supabase/migrations/0002_sessions.sql`, добавить `SESSION_SECRET`
+      (Secret, 64 hex), ключи Turnstile; затем проверить вход, лимиты и Lock на сайте.
+      Гостевая смена пока засчитывается на клиенте: перенос на сервер в шаге 6.
+- [ ] HANDOFF 6–12.
+
+Переменные в Vercel уже есть: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY,
+HELIUS_API_KEY, NEXT_PUBLIC_SOLANA_NETWORK=mainnet, NEXT_PUBLIC_TREASURY_ADDRESS, NEXT_PUBLIC_PAYOUT_ADDRESS,
+NEXT_PUBLIC_TOKEN_MINT (BONK). В коде сеть "mainnet" (не "mainnet-beta" как в HANDOFF, оба значения принимаются).
