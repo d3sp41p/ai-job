@@ -20,10 +20,19 @@ export async function GET() {
     }, { status: ok ? 200 : 500 });
   } catch (e) {
     const err = e as DbError;
+    const isDb = e instanceof DbError;
     const hint =
       err.code === "not_configured" ? "Add SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in Vercel, then redeploy." :
       err.code === "PGRST202" ? "Tables not created yet: run supabase/migrations/0001_init.sql in the SQL Editor." :
       err.status === 401 ? "The secret key is wrong." : "Unexpected database error.";
-    return Response.json({ ok: false, database: "error", hint }, { status: 500 });
+    return Response.json({
+      ok: false,
+      database: "error",
+      hint,
+      // safe diagnostics: HTTP status, Postgres/PostgREST code, short message. Never keys.
+      detail: isDb
+        ? { status: err.status, code: err.code ?? null, message: String(err.message).slice(0, 200) }
+        : { message: String((e as Error)?.message || e).slice(0, 200) },
+    }, { status: 500 });
   }
 }

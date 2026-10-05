@@ -6,9 +6,17 @@ if (typeof window !== "undefined") {
   throw new Error("lib/server/db.ts must never run in the browser");
 }
 
+function baseUrl() {
+  // accept "https://x.supabase.co", with or without a trailing "/" or "/rest/v1"
+  return (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "")
+    .trim()
+    .replace(/\/+$/, "")
+    .replace(/\/rest\/v1$/, "");
+}
+
 function config() {
-  const url = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "").replace(/\/+$/, "");
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+  const url = baseUrl();
+  const key = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
   if (!url || !key) throw new DbError("Database is not configured", 500, "not_configured");
   return { url, key };
 }
@@ -34,7 +42,12 @@ async function request<T>(path: string, init: RequestInit & { prefer?: string } 
     cache: "no-store",
   });
   const text = await res.text();
-  const body = text ? JSON.parse(text) : null;
+  let body: any = null;
+  try {
+    body = text ? JSON.parse(text) : null;
+  } catch {
+    body = { message: `Non-JSON response (HTTP ${res.status})` };
+  }
   if (!res.ok) {
     // never include the key or full request in errors
     throw new DbError(body?.message || `Database error ${res.status}`, res.status, body?.code);
@@ -82,8 +95,8 @@ export function rpc<T = any>(fn: string, args: object = {}) {
 
 /** check that the browser (public anon/publishable key) can NOT read our tables */
 export async function publicKeyIsBlocked(): Promise<boolean | null> {
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  const url = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "").replace(/\/+$/, "");
+  const anon = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").trim();
+  const url = baseUrl();
   if (!anon || !url) return null;
   const res = await fetch(`${url}/rest/v1/wallets?select=address&limit=1`, {
     headers: headers(anon),
