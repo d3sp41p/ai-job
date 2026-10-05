@@ -13,7 +13,7 @@ export const MIN_CLAIM_SOL = 0.01;
 // (or set MAX_PAYOUT_SOL / DAILY_PAYOUT_CAP_SOL in Vercel to override without a code change).
 export const MAX_PAYOUT_SOL = Number(process.env.MAX_PAYOUT_SOL) || 0.02; // one address, one payout
 export const DAILY_PAYOUT_CAP_SOL = Number(process.env.DAILY_PAYOUT_CAP_SOL) || 0.05; // all payouts, last 24 hours
-export const PAYOUTS_PER_TX = 18; // transfers packed into one transaction
+export const PAYOUTS_PER_TX = 16; // transfers packed into one transaction
 export const UNCLAIMED_EXPIRY_DAYS = 30;
 
 // ---- Anti-abuse ----

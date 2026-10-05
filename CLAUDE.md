@@ -261,7 +261,9 @@ PAYOUT держит ~0.05 SOL, крошечные `MAX_PAYOUT_SOL` / `DAILY_PAYO
       сначала сверяет pending-выплаты с сетью (confirmed → paid через `mark_payouts_paid`; blockhash истёк и подписи
       нет → failed, сумма снова к выплате), пока есть pending — новых выплат нет. Новые: долг ≥ MIN_CLAIM_SOL, не больше
       MAX_PAYOUT_SOL на адрес и DAILY_PAYOUT_CAP_SOL за сутки (в config, можно переопределить env), не больше баланса
-      PAYOUT минус 0.001 SOL на комиссии; пачки по 18 переводов + memo. Запись pending с подписью ДО отправки;
+      PAYOUT минус 0.001 SOL на комиссии; пачки по 16 переводов + memo + priority fee (PAYOUT_PRIORITY_MICROLAMPORTS,
+      по умолчанию 200000 × 50000 CU). Пока ждём подтверждения (35 с), та же подписанная транзакция переотправляется
+      каждые 2 с — без priority fee mainnet её отбрасывал (первая тестовая выплата 2026-10-05). Запись pending с подписью ДО отправки;
       ошибка симуляции → failed, прочие ошибки отправки → остаётся pending до сверки. Пауза: admin_settings.payouts_paused
       (по умолчанию true). Миграция `supabase/migrations/0005_payouts.sql`. Ключ PAYOUT_WALLET_SECRET_KEY: base58 из
       Phantom или JSON-массив, сверяется с NEXT_PUBLIC_PAYOUT_ADDRESS. `/api/health` показывает payout_key set/missing.

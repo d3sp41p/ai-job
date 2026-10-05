@@ -16,6 +16,7 @@ import {
   Transaction,
   TransactionInstruction,
   SendTransactionError,
+  ComputeBudgetProgram,
 } from "@solana/web3.js";
 import { DAILY_PAYOUT_CAP_SOL, MAX_PAYOUT_SOL, MIN_CLAIM_SOL, PAYOUTS_PER_TX } from "@/lib/config";
 import { insert, rpc, select } from "./db";
@@ -27,7 +28,11 @@ if (typeof window !== "undefined") {
 
 const MEMO_PROGRAM = new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
 const FEE_RESERVE_LAMPORTS = 1_000_000; // 0.001 SOL kept for network fees
-const CONFIRM_WAIT_MS = 25_000;
+const CONFIRM_WAIT_MS = 35_000;
+const RESEND_EVERY_MS = 2_000;
+// priority fee so a busy network doesn't drop the transaction: price × units ≈ 0.00001 SOL per batch
+const PRIORITY_MICROLAMPORTS = Number(process.env.PAYOUT_PRIORITY_MICROLAMPORTS) || 200_000;
+const COMPUTE_UNITS = 50_000;
 
 export class PayoutError extends Error {
   constructor(message: string, public code: string) {
@@ -150,6 +155,8 @@ async function sendBatch(conn: Connection, kp: Keypair, batch: Due[]) {
   const batchId = randomUUID();
   const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash("confirmed");
   const tx = new Transaction({ feePayer: kp.publicKey, blockhash, lastValidBlockHeight });
+  tx.add(ComputeBudgetProgram.setComputeUnitLimit({ units: COMPUTE_UNITS }));
+  tx.add(ComputeBudgetProgram.setComputeUnitPrice({ microLamports: PRIORITY_MICROLAMPORTS }));
   for (const p of batch) {
     tx.add(SystemProgram.transfer({ fromPubkey: kp.publicKey, toPubkey: new PublicKey(p.wallet), lamports: p.lamports }));
   }
@@ -178,8 +185,9 @@ async function sendBatch(conn: Connection, kp: Keypair, batch: Due[]) {
   const ids = rows.map((r) => r.id as string);
 
   // 2) send
+  const raw = tx.serialize();
   try {
-    await conn.sendRawTransaction(tx.serialize(), { skipPreflight: false, maxRetries: 5 });
+    await conn.sendRawTransaction(raw, { skipPreflight: false, maxRetries: 5 });
   } catch (e) {
     // a failed simulation means the network refused it: nothing moved, safe to free the amount
     if (e instanceof SendTransactionError) {
@@ -190,16 +198,24 @@ async function sendBatch(conn: Connection, kp: Keypair, batch: Due[]) {
     return { signature, sent: 0, error: "unclear, will be checked next hour" };
   }
 
-  // 3) wait a little for confirmation; if it's slow, the next run marks it
-  const confirmed = await Promise.race([
-    conn
-      .confirmTransaction({ signature, blockhash, lastValidBlockHeight }, "confirmed")
-      .then((r) => !r.value.err)
-      .catch(() => false),
-    new Promise<boolean>((r) => setTimeout(() => r(false), CONFIRM_WAIT_MS)),
-  ]);
-  if (confirmed) await rpc("mark_payouts_paid", { p_ids: ids });
-  return { signature, sent: batch.length, confirmed };
+  // 3) wait for confirmation, re-broadcasting the SAME signed transaction meanwhile.
+  //    Same signature = the network can include it at most once, so this never pays twice.
+  //    If it's still unclear when we stop waiting, the next run reconciles it.
+  const until = Date.now() + CONFIRM_WAIT_MS;
+  while (Date.now() < until) {
+    await new Promise((r) => setTimeout(r, RESEND_EVERY_MS));
+    const st = (await conn.getSignatureStatuses([signature]).catch(() => null))?.value[0];
+    if (st?.err) {
+      await rpc("mark_payouts_failed", { p_ids: ids, p_error: `on-chain error: ${JSON.stringify(st.err)}` });
+      return { signature, sent: 0, error: "failed on chain, amounts are free again" };
+    }
+    if (st && (st.confirmationStatus === "confirmed" || st.confirmationStatus === "finalized")) {
+      await rpc("mark_payouts_paid", { p_ids: ids });
+      return { signature, sent: batch.length, confirmed: true };
+    }
+    if (!st) await conn.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 0 }).catch(() => {});
+  }
+  return { signature, sent: batch.length, confirmed: false };
 }
 
 export async function runPayouts() {
