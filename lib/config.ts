@@ -9,6 +9,11 @@ export const COOLDOWN_MINUTES = 30;
 export const TOTAL_SUPPLY = 1_000_000_000; // pump.fun coins have 1B supply
 export const MIN_HOLD = TOTAL_SUPPLY * 0.0001; // 0.01% of supply = 100,000 tokens
 export const MIN_CLAIM_SOL = 0.01;
+// Safety limits for automatic payouts. Tiny while testing on mainnet; raise them before launch
+// (or set MAX_PAYOUT_SOL / DAILY_PAYOUT_CAP_SOL in Vercel to override without a code change).
+export const MAX_PAYOUT_SOL = Number(process.env.MAX_PAYOUT_SOL) || 0.02; // one address, one payout
+export const DAILY_PAYOUT_CAP_SOL = Number(process.env.DAILY_PAYOUT_CAP_SOL) || 0.05; // all payouts, last 24 hours
+export const PAYOUTS_PER_TX = 18; // transfers packed into one transaction
 export const UNCLAIMED_EXPIRY_DAYS = 30;
 
 // ---- Anti-abuse ----

@@ -22,7 +22,7 @@ function heliusKey() {
   return k;
 }
 
-function rpcUrl() {
+export function rpcUrl() {
   return `https://${network()}.helius-rpc.com/?api-key=${heliusKey()}`;
 }
 

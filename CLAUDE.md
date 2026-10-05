@@ -257,7 +257,16 @@ PAYOUT держит ~0.05 SOL, крошечные `MAX_PAYOUT_SOL` / `DAILY_PAYO
       в Supabase (`supabase/cron_payroll.sql`, секрет вписывается руками в SQL Editor, не в git), в :02 каждого часа.
       `/api/health` показывает cron_secret set/missing и last_payroll_hour.
       Осталось от команды: CRON_SECRET в Vercel, запустить 0004 и cron_payroll.sql.
-- [ ] HANDOFF 8–12.
+- [~] HANDOFF 8: `lib/server/payouts.ts` (@solana/web3.js v1): после почасового расчёта тот же `/api/cron/payroll`
+      сначала сверяет pending-выплаты с сетью (confirmed → paid через `mark_payouts_paid`; blockhash истёк и подписи
+      нет → failed, сумма снова к выплате), пока есть pending — новых выплат нет. Новые: долг ≥ MIN_CLAIM_SOL, не больше
+      MAX_PAYOUT_SOL на адрес и DAILY_PAYOUT_CAP_SOL за сутки (в config, можно переопределить env), не больше баланса
+      PAYOUT минус 0.001 SOL на комиссии; пачки по 18 переводов + memo. Запись pending с подписью ДО отправки;
+      ошибка симуляции → failed, прочие ошибки отправки → остаётся pending до сверки. Пауза: admin_settings.payouts_paused
+      (по умолчанию true). Миграция `supabase/migrations/0005_payouts.sql`. Ключ PAYOUT_WALLET_SECRET_KEY: base58 из
+      Phantom или JSON-массив, сверяется с NEXT_PUBLIC_PAYOUT_ADDRESS. `/api/health` показывает payout_key set/missing.
+      Осталось от команды: ключ в Vercel, запустить 0005, тестовая выплата.
+- [ ] HANDOFF 9–12.
 
 Переменные в Vercel уже есть: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY,
 HELIUS_API_KEY, NEXT_PUBLIC_SOLANA_NETWORK=mainnet, NEXT_PUBLIC_TREASURY_ADDRESS, NEXT_PUBLIC_PAYOUT_ADDRESS,
