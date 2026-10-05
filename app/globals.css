@@ -1,0 +1,334 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  overflow-x: clip;
+}
+
+html,
+body {
+  background: #0a0b09;
+  color: #eeece2;
+}
+
+body {
+  overflow-x: clip;
+  font-family: "Geist Variable", system-ui, sans-serif;
+  font-feature-settings: "tnum" 1;
+  -webkit-font-smoothing: antialiased;
+  /* faint glow at the top of every page */
+  background-image: radial-gradient(1200px 500px at 50% -120px, rgba(241, 224, 90, 0.07), transparent 70%);
+  background-repeat: no-repeat;
+}
+
+/* Display type. Class name kept from v1. */
+.font-condensed {
+  font-family: "Bricolage Grotesque Variable", system-ui, sans-serif;
+  font-variation-settings: "opsz" 96;
+  letter-spacing: -0.035em;
+}
+.font-condensed.font-black {
+  font-weight: 800;
+}
+
+@layer components {
+/* Card surface */
+.sheet {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0) 60%), #121410;
+  border: 1px solid #2a2e25;
+  border-radius: 20px;
+  overflow: hidden;
+}
+.sheet.overflow-visible {
+  overflow: visible;
+}
+
+/* Hero cards with a soft yellow glow */
+.glow {
+  background:
+    radial-gradient(600px 260px at 15% 0%, rgba(241, 224, 90, 0.16), transparent 70%),
+    #1a1d17;
+  border: 1px solid #343a2d;
+  border-radius: 24px;
+}
+
+/* v1 had ruled paper; the dark theme keeps it plain */
+.ruled {
+}
+
+/* Faint dot grid for hero areas */
+.dots {
+  background-image: radial-gradient(rgba(238, 236, 226, 0.09) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  padding: 0.75rem 1.4rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  transition: transform 120ms ease, background 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+}
+.btn:hover {
+  transform: translateY(-1px);
+}
+.btn:active {
+  transform: translateY(1px) scale(0.98);
+}
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+.btn-primary {
+  background: #eeece2;
+  color: #0a0b09;
+}
+.btn-primary:hover {
+  background: #ffffff;
+}
+.btn-marker {
+  background: #f1e05a;
+  color: #0a0b09;
+  box-shadow: 0 0 0 0 rgba(241, 224, 90, 0);
+}
+.btn-marker:hover {
+  box-shadow: 0 6px 28px -6px rgba(241, 224, 90, 0.55);
+}
+.btn-plain {
+  background: rgba(238, 236, 226, 0.04);
+  color: #eeece2;
+  border-color: #2f3429;
+}
+.btn-plain:hover {
+  border-color: #4a5141;
+  background: rgba(238, 236, 226, 0.07);
+}
+
+}
+
+:focus-visible {
+  outline: 2px solid #f1e05a;
+  outline-offset: 3px;
+}
+
+/* Rubber stamp */
+.stamp {
+  display: inline-block;
+  color: #ff5e4f;
+  border: 3px solid #ff5e4f;
+  padding: 0.2em 0.5em;
+  font-family: "Bricolage Grotesque Variable", system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transform: rotate(-8deg);
+  border-radius: 6px;
+  mask-image: radial-gradient(circle at 30% 40%, #000 60%, rgba(0, 0, 0, 0.75) 61%, #000 75%);
+}
+
+@keyframes stamp-in {
+  0% {
+    opacity: 0;
+    transform: rotate(-8deg) scale(2.2);
+  }
+  70% {
+    opacity: 1;
+    transform: rotate(-8deg) scale(0.94);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(-8deg) scale(1);
+  }
+}
+.stamp-animate {
+  animation: stamp-in 420ms cubic-bezier(0.2, 0.8, 0.3, 1.2) 600ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stamp-animate {
+    animation: none;
+  }
+  .btn,
+  .btn:hover,
+  .btn:active {
+    transform: none;
+    transition: none;
+    transform: none;
+  }
+}
+
+input:focus-visible {
+  outline-offset: 0;
+}
+
+/* Salary ticker */
+.ticker-track {
+  display: inline-block;
+  animation: ticker 40s linear infinite;
+}
+.ticker:hover .ticker-track {
+  animation-play-state: paused;
+}
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* Coffee steam */
+.steam path {
+  animation: steam 2.4s ease-in-out infinite;
+  transform-box: fill-box;
+}
+@keyframes steam {
+  0% { opacity: 0; transform: translateY(6px); }
+  40% { opacity: 0.9; }
+  100% { opacity: 0; transform: translateY(-6px); }
+}
+
+/* Payslip printing out of the slot */
+@keyframes print-out {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(0); }
+}
+.print-out {
+  animation: print-out 1.6s steps(14, end) both;
+}
+
+/* Promotion memo sliding onto the desk */
+@keyframes memo-in {
+  from { opacity: 0; transform: translateY(40px) rotate(-6deg); }
+  to { opacity: 1; transform: translateY(0) rotate(0); }
+}
+.memo-in {
+  animation: memo-in 500ms cubic-bezier(0.2, 0.8, 0.3, 1.1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track, .steam path, .print-out, .memo-in {
+    animation: none;
+  }
+}
+
+/* Money flow arrows with a coin travelling along them */
+.flow-link {
+  position: absolute;
+  left: 50%;
+  bottom: -24px;
+  width: 1.5px;
+  height: 24px;
+  background: #eeece2;
+}
+.flow-dot {
+  position: absolute;
+  left: -4px;
+  top: 0;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #f1e05a;
+  border: 1.5px solid #0a0b09;
+  animation: flow-v 1.5s linear infinite;
+}
+@keyframes flow-v {
+  from { top: -4px; }
+  to { top: 20px; }
+}
+@media (min-width: 768px) {
+  .flow-link {
+    left: auto;
+    right: -24px;
+    top: 50%;
+    bottom: auto;
+    width: 24px;
+    height: 1.5px;
+  }
+  .flow-dot {
+    top: -4px;
+    left: 0;
+    animation-name: flow-h;
+  }
+  @keyframes flow-h {
+    from { left: -4px; }
+    to { left: 20px; }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flow-dot { animation: none; }
+}
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* Boss reacts to a poke */
+@keyframes boss-shake {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  15% { transform: translate(calc(var(--amp) * -1), 0) rotate(-1.5deg); }
+  30% { transform: translate(var(--amp), 1px) rotate(1.5deg); }
+  45% { transform: translate(calc(var(--amp) * -0.7), 0) rotate(-1deg); }
+  60% { transform: translate(calc(var(--amp) * 0.6), -1px) rotate(0.8deg); }
+  80% { transform: translate(calc(var(--amp) * -0.3), 0) rotate(0); }
+}
+.boss-shake {
+  animation: boss-shake 420ms ease-out;
+}
+@keyframes boss-steam {
+  0% { opacity: 0; transform: translateY(8px) scale(0.6); }
+  40% { opacity: 0.9; }
+  100% { opacity: 0; transform: translateY(-14px) scale(1.2); }
+}
+.boss-steam circle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: boss-steam 1.1s ease-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .boss-shake, .boss-steam circle { animation: none; }
+}
+
+/* Treasury tank */
+@keyframes tank-coin {
+  0% { transform: translateY(-14px); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translateY(70px); opacity: 0; }
+}
+.tank-coin { animation: tank-coin 1.8s ease-in infinite; }
+@keyframes tank-drop {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(46px); opacity: 0; }
+}
+.tank-drop { animation: tank-drop 1.8s ease-in infinite; }
+@keyframes tank-wave {
+  from { transform: translateX(0); }
+  to { transform: translateX(80px); }
+}
+.tank-wave { animation: tank-wave 3s linear infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .tank-coin, .tank-drop, .tank-wave { animation: none; }
+}
+
+/* Assembly line belt */
+.belt-stripes {
+  background-image: repeating-linear-gradient(90deg, #1a1d17 0 14px, #121410 14px 28px);
+  background-size: 28px 100%;
+  animation: belt 0.6s linear infinite;
+}
+@keyframes belt {
+  from { background-position: 0 0; }
+  to { background-position: 28px 0; }
+}
+/* CCTV noise */
+.cam-noise {
+  background-image: repeating-linear-gradient(0deg, rgba(92, 211, 140, 0.15) 0 1px, transparent 1px 3px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .belt-stripes { animation: none; }
+}

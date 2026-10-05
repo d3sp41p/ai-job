@@ -1,0 +1,11 @@
+node_modules
+.next
+out
+.vercel
+*.tsbuildinfo
+*.zip
+# secrets: never commit
+.env
+.env*.local
+*.key
+*keypair*.json
