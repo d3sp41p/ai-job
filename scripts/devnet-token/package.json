@@ -1,0 +1,13 @@
+{
+  "name": "devnet-test-token",
+  "private": true,
+  "type": "module",
+  "description": "Creates the devnet TEST coin for AI Gave Me a Job. Devnet only.",
+  "scripts": {
+    "start": "node index.mjs"
+  },
+  "dependencies": {
+    "@solana/spl-token": "^0.4.9",
+    "@solana/web3.js": "^1.98.0"
+  }
+}

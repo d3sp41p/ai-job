@@ -9,3 +9,6 @@ out
 .env*.local
 *.key
 *keypair*.json
+
+# devnet throwaway issuer key and token info
+.devnet
