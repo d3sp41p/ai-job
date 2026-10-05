@@ -274,7 +274,13 @@ PAYOUT держит ~0.05 SOL, крошечные `MAX_PAYOUT_SOL` / `DAILY_PAYO
       новая выплата сама открывает расчётку. Ссылки для X: `POST /api/share` (`lib/server/share.ts`) сохраняет карточку в `share_cards` с данными ИЗ БАЗЫ
       (payslip — последняя paid-выплата своего адреса, promotion — текущее звание своего адреса, resume — любой адрес),
       страница `/p/[id]` + `opengraph-image`/`twitter-image` (next/og). `ShareDialog` берёт ссылку оттуда.
-- [ ] HANDOFF 10–12.
+- [~] HANDOFF 10: `/admin` (noindex) — вход по ADMIN_PASSWORD (≥12 символов, 5 попыток / 10 мин с IP), подписанная
+      кука `aij_admin` на 12 ч (HMAC от SESSION_SECRET), `lib/server/admin.ts`. Экран: пауза/запуск выплат, казна,
+      баланс PAYOUT + «Top up the pay wallet», выплачено за 24 ч против лимита, «Run now» (почасовой расчёт + выплаты,
+      уважает паузу), зависшие/failed выплаты, история расчётов за 24 ч, кому сколько должны, подозрительные смены
+      (`game_sessions.flagged`), бан/разбан адреса, журнал `admin_log`. API: `/api/admin/login|overview|action`.
+      Осталось от команды: ADMIN_PASSWORD в Vercel.
+- [ ] HANDOFF 11–12.
 
 Переменные в Vercel уже есть: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY,
 HELIUS_API_KEY, NEXT_PUBLIC_SOLANA_NETWORK=mainnet, NEXT_PUBLIC_TREASURY_ADDRESS, NEXT_PUBLIC_PAYOUT_ADDRESS,

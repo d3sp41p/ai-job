@@ -25,6 +25,7 @@ export async function GET() {
         secret_key: process.env.TURNSTILE_SECRET_KEY ? "set" : "missing",
       },
       payout_key: (process.env.PAYOUT_WALLET_SECRET_KEY || "").trim() ? "set" : "missing",
+      admin_password: (process.env.ADMIN_PASSWORD || "").trim().length >= 12 ? "set" : "missing or shorter than 12",
       cron_secret: (process.env.CRON_SECRET || "").trim().length >= 16 ? "set" : "missing or shorter than 16",
       last_payroll_hour: lastHour ? lastHour.hour_start : "never",
     }, { status: ok ? 200 : 500 });
