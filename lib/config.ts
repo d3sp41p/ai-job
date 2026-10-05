@@ -1,7 +1,9 @@
 // All tunable numbers live here. Change them, the whole site follows.
 
 export const TOKEN_NAME = "AI Gave Me a Job";
-export const TOKEN_TICKER = "$HIRED"; // placeholder until the coin is launched
+export const TOKEN_TICKER = process.env.NEXT_PUBLIC_TOKEN_TICKER || "$HIRED"; // set NEXT_PUBLIC_TOKEN_TICKER after launch
+// the coin's pump.fun page; the "Buy" buttons appear once it is set (NEXT_PUBLIC_BUY_URL in Vercel)
+export const BUY_URL = (process.env.NEXT_PUBLIC_BUY_URL || "").trim();
 
 export type Difficulty = "easy" | "medium" | "hard";
 

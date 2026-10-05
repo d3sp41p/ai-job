@@ -127,7 +127,7 @@ export async function finishShift(s: Session, id: string, rawPerf: unknown, rawS
   if (mode === "paid" && row.wallet) {
     const hold = await getHoldStatus(row.wallet).catch(() => null);
     const today = await shiftsLast24h(row.wallet, row.id);
-    points = computePoints(d, performance, hold?.eligible ? hold.minBalance24h : 0, hold?.daysHeld ?? 0, today);
+    points = computePoints(d, performance, hold?.eligible ? Math.max(hold.minBalance24h, MIN_HOLD) : 0, hold?.daysHeld ?? 0, today);
   } else if (mode === "practice") {
     points = { ...points, total: 0 };
   }
@@ -185,7 +185,7 @@ export async function redeemGuestShift(s: Session, address: string) {
   if (!hold?.eligible) return { game, points: 0, reason: "no_coins" as const };
 
   const today = await shiftsLast24h(address, g.id);
-  const pts = computePoints(g.difficulty, Number(g.performance), hold.minBalance24h, hold.daysHeld, today);
+  const pts = computePoints(g.difficulty, Number(g.performance), Math.max(hold.minBalance24h, MIN_HOLD), hold.daysHeld, today);
   await rpc("credit_guest_shift", {
     p_id: g.id,
     p_wallet: address,

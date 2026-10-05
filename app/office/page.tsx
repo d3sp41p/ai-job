@@ -11,6 +11,7 @@ import {
   PAID_SHIFTS_PER_DAY,
   RANKS,
   TOKEN_TICKER,
+  BUY_URL,
   hourlyPay,
   hourlyPayroll,
   holdMultiplier,
@@ -252,9 +253,14 @@ export default function OfficePage() {
           </div>
 
           {!eligible ? (
-            <p className="mt-4 border-l-4 border-stamp pl-3">
-              You need at least {MIN_HOLD.toLocaleString("en-US")} {TOKEN_TICKER} to take assignments.
-            </p>
+            <div className="mt-4 border-l-4 border-stamp pl-3">
+              <p>You need at least {MIN_HOLD.toLocaleString("en-US")} {TOKEN_TICKER} to take assignments.</p>
+              {BUY_URL && (
+                <a href={BUY_URL} target="_blank" rel="noreferrer" className="btn btn-marker mt-3">
+                  Buy {TOKEN_TICKER} on pump.fun
+                </a>
+              )}
+            </div>
           ) : onCooldown ? (
             <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
               <CoffeeBreak left={breakLeft} />

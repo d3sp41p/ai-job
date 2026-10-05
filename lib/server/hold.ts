@@ -25,7 +25,10 @@ export type HoldStatus = {
 function build(address: string, info: Awaited<ReturnType<typeof getHoldInfo>>, extraMin?: number): HoldStatus {
   const min24 = Math.min(info.minBalance24h, extraMin ?? Infinity, info.balance);
   const daysHeld = info.holdStart ? Math.floor((Date.now() - info.holdStart) / 86_400_000) : 0;
-  const hm = holdMultiplier(min24);
+  // Paid from the first minute if the address holds the minimum NOW (team decision 2026-10-05).
+  // Tiers above x1.0 need the higher balance for the whole last 24 hours.
+  const holding = info.balance >= MIN_HOLD;
+  const hm = holding ? Math.max(holdMultiplier(MIN_HOLD), holdMultiplier(min24)) : 0;
   return {
     address,
     balance: info.balance,
@@ -34,7 +37,7 @@ function build(address: string, info: Awaited<ReturnType<typeof getHoldInfo>>, e
     daysHeld,
     holdMultiplier: hm,
     streakMultiplier: info.holdStart ? streakMultiplier(daysHeld) : 1,
-    eligible: info.balance >= MIN_HOLD && hm > 0,
+    eligible: holding,
     minHold: MIN_HOLD,
     historyComplete: info.historyComplete,
     checkedAt: new Date().toISOString(),

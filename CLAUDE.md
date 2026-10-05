@@ -38,6 +38,8 @@
 - **Потолок**: один кошелёк получает максимум 5% часовой порции (`WALLET_HOURLY_CAP`). Излишек остаётся в казне.
 - **Сверхурочные**: первые 12 смен за скользящие 24 часа (`PAID_SHIFTS_PER_DAY`) оплачиваются полностью, дальше поинты × 0.25 (`OVERTIME_RATE`).
 - **Порог качества**: performance < 50% (`QUALITY_THRESHOLD`) = 0 поинтов.
+- **Право на оплату** (решение команды 2026-10-05): текущий баланс ≥ MIN_HOLD — платим сразу, без ожидания 24 ч
+  (бонус ×1.0). Ступени выше ×1.0 — только если баланс держался все 24 ч.
 - **Бонус за холд**: ступени 100k ×1.0, 250k ×1.3, 500k ×1.6, 1M ×2.0, 2.5M ×2.4, 5M+ ×3.0. Считается по МИНИМАЛЬНОМУ балансу за последние 24 часа (проверка при каждой смене + периодически).
 - **Бонус за стаж**: +5% в день, максимум ×1.5. Сбрасывается, если баланс опускался ниже минимума (в том числе при переводе монет на другой кошелёк).
 - **Минимальный холд**: 0.01% supply = 100 000 монет (в монетах, не в долларах: при росте цены вход дорожает, это часть механики роста зарплат).
@@ -282,7 +284,14 @@ PAYOUT держит ~0.05 SOL, крошечные `MAX_PAYOUT_SOL` / `DAILY_PAYO
       уважает паузу), зависшие/failed выплаты, история расчётов за 24 ч, кому сколько должны, подозрительные смены
       (`game_sessions.flagged`), бан/разбан адреса, журнал `admin_log`. API: `/api/admin/login|overview|action`.
       Осталось от команды: ADMIN_PASSWORD в Vercel.
-- [ ] HANDOFF 11–12.
+- [—] HANDOFF 11: пропущен по решению команды (2026-10-05).
+- [~] HANDOFF 12, подготовка сделана: превью-кнопки убраны (Skip break, Simulate payout; «Try a specific job» стал
+      тренировкой без оплаты и остаётся), `lib/mock.ts` = только `shortAddr`, кнопки «Buy on pump.fun» появляются при
+      NEXT_PUBLIC_BUY_URL, тикер из NEXT_PUBLIC_TOKEN_TICKER, выплаты никогда не идут на PAYOUT/TREASURY. Право на оплату
+      с первой минуты холда (см. «Экономика»). Лимит попыток входа в админку на месте (5 / 10 мин).
+      Запуск (делает команда): выплаты на паузу → монета на pump.fun (получатель фисов = TREASURY, не Cashback) →
+      в Vercel NEXT_PUBLIC_TOKEN_MINT, NEXT_PUBLIC_TOKEN_TICKER, NEXT_PUBLIC_BUY_URL, TOKEN_DECIMALS=6, MAX_PAYOUT_SOL,
+      DAILY_PAYOUT_CAP_SOL → Redeploy → клейм фисов на TREASURY, суточный пул на PAYOUT → смена самим → Resume payouts.
 
 Переменные в Vercel уже есть: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY,
 HELIUS_API_KEY, NEXT_PUBLIC_SOLANA_NETWORK=mainnet, NEXT_PUBLIC_TREASURY_ADDRESS, NEXT_PUBLIC_PAYOUT_ADDRESS,

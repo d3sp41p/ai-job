@@ -16,6 +16,7 @@ import {
   RANKS,
   SALARY_POOL_SHARE,
   TOKEN_TICKER,
+  BUY_URL,
   WALLET_HOURLY_CAP,
   hourlyPayroll,
   salaryPool,
@@ -159,6 +160,11 @@ export default function HowItWorks() {
               </li>
             ))}
           </ol>
+          {BUY_URL && (
+            <a href={BUY_URL} target="_blank" rel="noreferrer" className="btn btn-marker mt-5">
+              Buy {TOKEN_TICKER} on pump.fun
+            </a>
+          )}
         </Section>
 
         <Section id="money" title="Where the money comes from">
