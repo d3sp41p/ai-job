@@ -271,7 +271,9 @@ PAYOUT держит ~0.05 SOL, крошечные `MAX_PAYOUT_SOL` / `DAILY_PAYO
       по `payroll_hours`), клиентский `useStats()` / `currentStats()` в `lib/stats.ts` вместо `STATS`/`LEADERBOARD`/
       `RECENT_PAYOUTS` из `lib/mock.ts` (там остались только `shortAddr` и неиспользуемые заглушки). Главная —
       `components/HomeNumbers.tsx`. «Simulate the hourly payout» удалён: `lastPayout` приходит в `/api/session` → `work`,
-      новая выплата сама открывает расчётку. Ещё НЕ сделано: ссылки `/p/[id]` с OG-картинкой для карточек X.
+      новая выплата сама открывает расчётку. Ссылки для X: `POST /api/share` (`lib/server/share.ts`) сохраняет карточку в `share_cards` с данными ИЗ БАЗЫ
+      (payslip — последняя paid-выплата своего адреса, promotion — текущее звание своего адреса, resume — любой адрес),
+      страница `/p/[id]` + `opengraph-image`/`twitter-image` (next/og). `ShareDialog` берёт ссылку оттуда.
 - [ ] HANDOFF 10–12.
 
 Переменные в Vercel уже есть: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY,

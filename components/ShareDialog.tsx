@@ -10,7 +10,7 @@ import { useEmployee } from "@/lib/wallet";
 
 // Builds a share image (payslip, promotion or resume) on a canvas, then lets the
 // employee download it, copy the post text, or open X with the text ready.
-// In production each share also gets its own link whose preview is this image.
+// Each share also gets its own link /p/<id>: X shows a server-drawn card under the post.
 
 export type ShareCard =
   | { kind: "salary"; amount: number; title: string; tasks: number; days: number; address: string }
@@ -44,6 +44,23 @@ export default function ShareDialog({ card, onClose }: { card: ShareCard; onClos
   const [quote] = useState(() => QUOTES[card.kind][Math.floor(Math.random() * QUOTES[card.kind].length)]);
   const text = postText(card);
   const cardKey = JSON.stringify(card);
+  const [link, setLink] = useState<string | null>(null);
+
+  // ask the server for this card's own link (numbers are read from our database there)
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/share", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kind: card.kind, address: card.address }),
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => alive && d?.path && setLink(`${window.location.origin}${d.path}`))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [card.kind, card.address]);
 
   useEffect(() => {
     let cancelled = false;
@@ -81,7 +98,7 @@ export default function ShareDialog({ card, onClose }: { card: ShareCard; onClos
   };
 
   const site = typeof window !== "undefined" ? window.location.origin : "";
-  const shareUrl = `${site}/resume/?address=${card.address}`;
+  const shareUrl = link ?? `${site}/resume/?address=${card.address}`;
   const xUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
 
   // Rendered into <body> so a transformed parent (memo, payslip) can't trap it
@@ -127,7 +144,7 @@ export default function ShareDialog({ card, onClose }: { card: ShareCard; onClos
             </button>
           </div>
           <p className="text-xs text-inksoft">
-            Tip: attach the downloaded image to your post for the biggest preview.
+            {link ? "Your link shows this card on X. You can also attach the downloaded image." : "Tip: attach the downloaded image to your post for the biggest preview."}
           </p>
         </div>
         {/* hidden face used to draw the card */}
