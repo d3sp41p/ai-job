@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import BossFace from "./BossFace";
 import { TOKEN_NAME, TOKEN_TICKER, salaryPool } from "@/lib/config";
-import { STATS, shortAddr } from "@/lib/mock";
+import { shortAddr } from "@/lib/mock";
+import { currentStats } from "@/lib/stats";
 import { useEmployee } from "@/lib/wallet";
 
 // Builds a share image (payslip, promotion or resume) on a canvas, then lets the
@@ -266,7 +267,7 @@ function draw(ctx: CanvasRenderingContext2D, card: ShareCard, quote: string, fac
   ctx.fillStyle = PAPER;
   setFont(ctx, 600, 22, false);
   ctx.fillText(
-    `Treasury ${STATS.treasurySol} SOL  ·  Salary pool ${salaryPool(STATS.treasurySol).toFixed(1)} SOL  ·  100% of fees go to workers`,
+    `Treasury ${currentStats().treasurySol.toFixed(2)} SOL  ·  Salary pool ${salaryPool(currentStats().treasurySol).toFixed(2)} SOL  ·  100% of fees go to workers`,
     92,
     H - 92
   );

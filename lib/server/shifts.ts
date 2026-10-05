@@ -206,7 +206,7 @@ export async function workState(s: Session) {
   const or = s.a ? `(device_id.eq.${s.d},wallet.eq.${s.a})` : `(device_id.eq.${s.d})`;
   const now = new Date();
   const hour = new Date(Math.floor(now.getTime() / 3_600_000) * 3_600_000).toISOString();
-  const [last, pending, mine, hourRows] = await Promise.all([
+  const [last, pending, mine, hourRows, lastPaid] = await Promise.all([
     select("game_sessions", { columns: "started_at", filters: { or }, order: "started_at.desc", limit: 1 }),
     select("guest_shifts", {
       columns: "created_at,expires_at,game_sessions(game_id)",
@@ -225,6 +225,14 @@ export async function workState(s: Session) {
     s.a
       ? select("game_sessions", { columns: "points", filters: { wallet: `eq.${s.a}`, payroll_hour: `eq.${hour}` }, limit: 200 })
       : Promise.resolve([]),
+    s.a
+      ? select("payouts", {
+          columns: "amount_sol,tx_signature,updated_at",
+          filters: { wallet: `eq.${s.a}`, status: "eq.paid" },
+          order: "updated_at.desc",
+          limit: 1,
+        })
+      : Promise.resolve([]),
   ]);
 
   const lastStart = last[0] ? Date.parse(last[0].started_at) : 0;
@@ -234,6 +242,9 @@ export async function workState(s: Session) {
     cooldownEndsAt: cooldownEndsAt > now.getTime() ? cooldownEndsAt : null,
     pending: p ? { at: Date.parse(p.created_at), expiresAt: Date.parse(p.expires_at), game: gameName(p.game_sessions?.game_id ?? "") } : null,
     shiftsToday: mine.filter((r: any) => r.status === "finished" && r.mode !== "practice").length,
+    lastPayout: lastPaid[0]
+      ? { amount: Number(lastPaid[0].amount_sol), tx: lastPaid[0].tx_signature as string, at: Date.parse(lastPaid[0].updated_at) }
+      : null,
     pointsThisHour: Math.round(hourRows.reduce((a: number, r: any) => a + Number(r.points || 0), 0) * 10) / 10,
     history: mine.slice(0, 20).map((r: any) => ({
       id: r.id,

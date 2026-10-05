@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { shortAddr, STATS } from "@/lib/mock";
+import { shortAddr } from "@/lib/mock";
+import { currentStats } from "@/lib/stats";
 import { useEmployee } from "@/lib/wallet";
 import ShareDialog from "./ShareDialog";
 
@@ -38,7 +39,7 @@ export default function Payslip({
         <div className="overflow-hidden mx-6">
           <div className="print-out bg-sheet border-x border-b border-rule px-5 pt-5 pb-6 relative">
             <p className="text-center font-condensed text-2xl font-black">Payslip</p>
-            <p className="text-center text-xs text-inksoft">No. {no} · Treasury {STATS.treasurySol} SOL</p>
+            <p className="text-center text-xs text-inksoft">No. {no} · Treasury {currentStats().treasurySol.toFixed(2)} SOL</p>
             <dl className="mt-5 grid grid-cols-[1fr_auto] gap-y-1.5 text-sm border-t border-dashed border-rule pt-3">
               <dt className="text-inksoft">Employee</dt>
               <dd>{emp.name && address === emp.address ? `${emp.name} (${shortAddr(address)})` : shortAddr(address)}</dd>

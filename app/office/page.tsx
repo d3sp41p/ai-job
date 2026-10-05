@@ -19,7 +19,8 @@ import {
   type Difficulty,
 } from "@/lib/config";
 import { PENDING_MINUTES, isSolanaAddress, useEmployee } from "@/lib/wallet";
-import { shortAddr, STATS } from "@/lib/mock";
+import { shortAddr } from "@/lib/mock";
+import { useStats } from "@/lib/stats";
 import { LINES, pick } from "@/lib/manager";
 import GameRunner from "@/components/GameRunner";
 import { GAMES } from "@/lib/games";
@@ -34,6 +35,7 @@ const withArticle = (t: string) => (/^[AEIOU]/.test(t) ? `an ${t}` : `a ${t}`);
 export default function OfficePage() {
   const emp = useEmployee();
   const now = useNow();
+  const STATS = useStats();
   const [shift, setShift] = useState<Difficulty | null>(null);
   const [forcedGame, setForcedGame] = useState<string | undefined>(undefined);
   const [guestAddr, setGuestAddr] = useState("");
@@ -94,14 +96,29 @@ export default function OfficePage() {
     setGuestErr("");
   };
 
-  // Preview only: in production the hourly job sends this automatically
-  const simulatePayout = () => {
-    const p = emp.payoutNow();
-    if (p) {
-      setPayslip(p);
+  // A new salary arrived since the page opened: show the payslip once
+  const seenPayout = useRef<string | null | undefined>(undefined);
+  useEffect(() => {
+    const tx = emp.lastPayout?.tx ?? null;
+    if (!emp.ready) return;
+    if (seenPayout.current === undefined) {
+      seenPayout.current = tx;
+      return;
+    }
+    if (tx && tx !== seenPayout.current && emp.lastPayout) {
+      seenPayout.current = tx;
+      setPayslip(emp.lastPayout);
       emp.say(pick(LINES.claim));
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [emp.lastPayout?.tx, emp.ready]);
+
+  // the work file (unpaid salary, last payout) refreshes every few minutes while the office is open
+  useEffect(() => {
+    const t = setInterval(() => emp.refresh(), 3 * 60_000);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10 grid grid-cols-1 gap-6 lg:grid-cols-[22rem_1fr] items-start">
@@ -360,15 +377,6 @@ export default function OfficePage() {
                 )}
               </div>
             </div>
-            {!emp.isGuest && (
-              <button
-                onClick={simulatePayout}
-                disabled={emp.unpaidSol < MIN_CLAIM_SOL}
-                className="mt-auto pt-4 text-left text-sm underline underline-offset-4 text-stamp disabled:opacity-40 disabled:no-underline"
-              >
-                Simulate the hourly payout (preview only)
-              </button>
-            )}
           </div>
         </section>
 

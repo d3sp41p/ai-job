@@ -266,7 +266,13 @@ PAYOUT держит ~0.05 SOL, крошечные `MAX_PAYOUT_SOL` / `DAILY_PAYO
       (по умолчанию true). Миграция `supabase/migrations/0005_payouts.sql`. Ключ PAYOUT_WALLET_SECRET_KEY: base58 из
       Phantom или JSON-массив, сверяется с NEXT_PUBLIC_PAYOUT_ADDRESS. `/api/health` показывает payout_key set/missing.
       Осталось от команды: ключ в Vercel, запустить 0005, тестовая выплата.
-- [ ] HANDOFF 9–12.
+- [~] HANDOFF 9: `/api/stats` (`lib/server/stats.ts`: казна, выплачено, выплат, работников, заданий, фисы всего =
+      кошельки компании + выплачено, очки и люди этого часа, лидерборд за 24 ч с именами, последние 10 выплат, график казны
+      по `payroll_hours`), клиентский `useStats()` / `currentStats()` в `lib/stats.ts` вместо `STATS`/`LEADERBOARD`/
+      `RECENT_PAYOUTS` из `lib/mock.ts` (там остались только `shortAddr` и неиспользуемые заглушки). Главная —
+      `components/HomeNumbers.tsx`. «Simulate the hourly payout» удалён: `lastPayout` приходит в `/api/session` → `work`,
+      новая выплата сама открывает расчётку. Ещё НЕ сделано: ссылки `/p/[id]` с OG-картинкой для карточек X.
+- [ ] HANDOFF 10–12.
 
 Переменные в Vercel уже есть: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY,
 HELIUS_API_KEY, NEXT_PUBLIC_SOLANA_NETWORK=mainnet, NEXT_PUBLIC_TREASURY_ADDRESS, NEXT_PUBLIC_PAYOUT_ADDRESS,

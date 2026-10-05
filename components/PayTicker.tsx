@@ -1,14 +1,17 @@
 "use client";
 
-import { RECENT_PAYOUTS, shortAddr } from "@/lib/mock";
+import { shortAddr } from "@/lib/mock";
+import { useStats } from "@/lib/stats";
 
 // Scrolling strip of the latest salaries, like a stock ticker in the lobby.
 export default function PayTicker() {
-  const items = RECENT_PAYOUTS.map((p) => (
+  const { recentPayouts } = useStats();
+  if (!recentPayouts.length) return null;
+  const items = recentPayouts.map((p) => (
     <span key={p.tx} className="inline-flex items-center gap-2 px-6">
       <span className="h-1.5 w-1.5 rounded-full bg-marker" aria-hidden />
       <span className="text-ink/60">{shortAddr(p.address)} got paid</span>
-      <span className="font-semibold text-marker">{p.amountSol} SOL</span>
+      <span className="font-semibold text-marker">{p.amountSol.toFixed(3)} SOL</span>
     </span>
   ));
   return (

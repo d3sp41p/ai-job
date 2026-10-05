@@ -17,7 +17,7 @@ import {
 import { GAMES } from "@/lib/games";
 import { PENDING_MINUTES, isSolanaAddress, useEmployee } from "@/lib/wallet";
 import { LINES, pick } from "@/lib/manager";
-import { STATS } from "@/lib/mock";
+import { useStats } from "@/lib/stats";
 import Turnstile from "./Turnstile";
 import type { GameProps } from "./games/types";
 import TakeOutTrash from "./games/TakeOutTrash";
@@ -76,6 +76,7 @@ export default function GameRunner({
   onClose: () => void;
 }) {
   const emp = useEmployee();
+  const STATS = useStats();
   const [shift, setShift] = useState<Shift | null>(() => (gameId ? { id: null, gameId, mode: "drill", overtime: false } : null));
   const [phase, setPhase] = useState<"intro" | "brief" | "play" | "sending" | "result">(gameId ? "brief" : "intro");
   const [captcha, setCaptcha] = useState<string | null>(null); // null = not solved yet

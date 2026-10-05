@@ -21,7 +21,7 @@ import {
   salaryPool,
   type Difficulty,
 } from "@/lib/config";
-import { STATS } from "@/lib/mock";
+import { useStats } from "@/lib/stats";
 import Manager from "@/components/Manager";
 import Flywheel from "@/components/Flywheel";
 import TreasuryTank from "@/components/TreasuryTank";
@@ -91,6 +91,7 @@ const FAQ = [
 ];
 
 export default function HowItWorks() {
+  const STATS = useStats();
   const pool = salaryPool(STATS.treasurySol);
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10 grid grid-cols-1 lg:grid-cols-[14rem_1fr] gap-10">

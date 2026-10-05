@@ -9,7 +9,7 @@ import {
   salaryPool,
   type Difficulty,
 } from "@/lib/config";
-import { STATS } from "@/lib/mock";
+import HomeNumbers from "@/components/HomeNumbers";
 import CountUp from "@/components/CountUp";
 import BossDesk from "@/components/BossDesk";
 
@@ -163,22 +163,7 @@ export default function Home() {
             Open the payroll
           </Link>
         </div>
-        <dl className="grid grid-cols-2 sheet">
-          {([
-            ["Treasury", <CountUp key="a" value={STATS.treasurySol} decimals={1} suffix=" SOL" />],
-            ["Salary pool", <CountUp key="b" value={salaryPool(STATS.treasurySol)} decimals={2} suffix=" SOL" />],
-            ["Paid to humans", <CountUp key="c" value={STATS.totalPaidSol} decimals={1} suffix=" SOL" />],
-            ["Employees", <CountUp key="d" value={STATS.workers} />],
-          ] as [string, React.ReactNode][]).map(([k, v], i) => (
-            <div
-              key={k}
-              className={`p-5 ${i % 2 ? "border-l border-rule" : ""} ${i > 1 ? "border-t border-rule" : ""}`}
-            >
-              <dt className="text-sm text-inksoft">{k}</dt>
-              <dd className="font-condensed text-4xl font-extrabold mt-1">{v}</dd>
-            </div>
-          ))}
-        </dl>
+        <HomeNumbers />
       </section>
     </>
   );

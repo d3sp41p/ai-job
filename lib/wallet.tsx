@@ -5,8 +5,7 @@
 // Cooldown, shifts, history and the guest shift all come from the server (/api/session).
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
-import { MIN_CLAIM_SOL, PENDING_MINUTES, type Difficulty } from "./config";
-import { fakeAddress } from "./mock";
+import { PENDING_MINUTES, type Difficulty } from "./config";
 import { signAndLock, type LockResult, type Redeemed } from "./lockClient";
 
 export { PENDING_MINUTES };
@@ -31,6 +30,7 @@ type Work = {
   shiftsToday: number;
   pointsThisHour: number;
   history: HistoryEntry[];
+  lastPayout: { amount: number; tx: string; at: number } | null; // latest salary sent to this address
 };
 
 type EmployeeState = Work & {
@@ -42,7 +42,6 @@ type EmployeeState = Work & {
   tasksCompleted: number;
   unpaidSol: number; // paid automatically at the top of the hour once >= MIN_CLAIM_SOL
   paidSol: number;
-  lastPayout: { amount: number; tx: string; at: number } | null;
   redeemed: (NonNullable<Redeemed> & { id: number }) | null; // guest shift credited on address entry
   managerLine: { text: string; id: number };
 };
@@ -56,11 +55,10 @@ type Ctx = EmployeeState & {
   ready: boolean; // server session loaded
   refresh: () => Promise<void>; // reload the work file (after a shift)
   setCooldown: (endsAt: number | null) => void;
-  payoutNow: () => { amount: number; tx: string } | null;
   say: (text: string) => void;
 };
 
-const noWork: Work = { cooldownEndsAt: null, pending: null, shiftsToday: 0, pointsThisHour: 0, history: [] };
+const noWork: Work = { cooldownEndsAt: null, pending: null, shiftsToday: 0, pointsThisHour: 0, history: [], lastPayout: null };
 
 const initial: EmployeeState = {
   ...noWork,
@@ -72,7 +70,6 @@ const initial: EmployeeState = {
   tasksCompleted: 0,
   unpaidSol: 0,
   paidSol: 0,
-  lastPayout: null,
   redeemed: null,
   managerLine: { text: "", id: 0 },
 };
@@ -180,14 +177,6 @@ export function EmployeeProvider({ children }: { children: ReactNode }) {
       return r;
     },
     setCooldown: (endsAt) => setS((p) => ({ ...p, cooldownEndsAt: endsAt })),
-    // PREVIEW until step 8: real payouts are sent by the hourly job
-    payoutNow: () => {
-      if (s.unpaidSol < MIN_CLAIM_SOL) return null;
-      const amount = s.unpaidSol;
-      const tx = fakeAddress(Date.now() % 997) + fakeAddress(Date.now() % 991).slice(0, 44);
-      setS((p) => ({ ...p, paidSol: p.paidSol + p.unpaidSol, unpaidSol: 0, lastPayout: { amount, tx, at: Date.now() } }));
-      return { amount, tx };
-    },
     say,
   };
 

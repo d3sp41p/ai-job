@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { LEADERBOARD, PAYOUT_ADDRESS, RECENT_PAYOUTS, STATS, TREASURY_ADDRESS, shortAddr } from "@/lib/mock";
+import { shortAddr } from "@/lib/mock";
+import { useStats } from "@/lib/stats";
 import CountUp from "@/components/CountUp";
-import { formatDuration, useNow } from "@/components/useNow";
+import { formatDuration, timeAgo, useNow } from "@/components/useNow";
 import TreasuryChart from "@/components/TreasuryChart";
 import { hourlyPayroll, salaryPool, SALARY_POOL_SHARE } from "@/lib/config";
 
@@ -11,11 +12,14 @@ const solscan = (path: string) => `https://solscan.io/${path}`;
 
 export default function DashboardPage() {
   const now = useNow();
+  const STATS = useStats();
+  const TREASURY_ADDRESS = STATS.treasuryAddress;
+  const PAYOUT_ADDRESS = STATS.payoutAddress;
   const nextHour = Math.ceil((now + 1) / 3_600_000) * 3_600_000;
   const pool = salaryPool(STATS.treasurySol);
   const slice = hourlyPayroll(STATS.treasurySol);
   const hist = STATS.treasuryHistory;
-  const weekGrowth = hist[hist.length - 1] - hist[hist.length - 8];
+  const weekGrowth = hist[hist.length - 1] - hist[Math.max(0, hist.length - 8)];
 
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10">
@@ -128,12 +132,12 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {LEADERBOARD.map((r, i) => (
+                {STATS.leaderboard.map((r, i) => (
                   <tr key={r.address} className={`border-b border-rule last:border-0 ${i === 0 ? "bg-marker/10 text-marker" : ""}`}>
                     <td className="pl-5 pr-2 py-2.5 font-semibold">{i + 1}</td>
                     <td className="px-2 py-2.5">
                       <Link href={`/resume/?address=${r.address}`} className="underline underline-offset-4">
-                        {shortAddr(r.address)}
+                        {r.name ? `${r.name} · ${shortAddr(r.address)}` : shortAddr(r.address)}
                       </Link>
                     </td>
                     <td className="px-2 py-2.5 whitespace-nowrap">{r.rank}</td>
@@ -148,21 +152,20 @@ export default function DashboardPage() {
         <section className="sheet">
           <h2 className="px-5 pt-5 font-condensed text-3xl font-black">Latest salaries</h2>
           <ul className="mt-3">
-            {RECENT_PAYOUTS.map((p) => (
+            {STATS.recentPayouts.map((p) => (
               <li key={p.tx} className="px-5 py-2.5 border-t border-rule flex items-baseline justify-between gap-3 text-[15px]">
                 <span>
                   <span className="font-semibold">{p.amountSol} SOL</span>
                   <span className="text-inksoft"> to {shortAddr(p.address)}</span>
                 </span>
                 <a href={solscan(`tx/${p.tx}`)} target="_blank" rel="noreferrer" className="text-sm underline underline-offset-4 whitespace-nowrap">
-                  {p.minutesAgo} min ago
+                  {timeAgo(p.at, now)}
                 </a>
               </li>
             ))}
           </ul>
         </section>
       </div>
-      <p className="mt-6 text-sm text-inksoft">Preview build: all numbers on this page are sample data.</p>
     </div>
   );
 }
