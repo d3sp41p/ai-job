@@ -2,11 +2,27 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { rankFor, TOKEN_TICKER } from "@/lib/config";
-import { mockResume, shortAddr } from "@/lib/mock";
+import { rankFor, TOKEN_TICKER, MIN_HOLD } from "@/lib/config";
+import { shortAddr } from "@/lib/mock";
 import ShareDialog from "@/components/ShareDialog";
 
 const isSolanaAddress = (a: string) => /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(a);
+const fmt = (n: number) => Math.floor(n).toLocaleString("en-US");
+
+type Resume = {
+  address: string;
+  name: string | null;
+  balance: number;
+  minBalance24h: number;
+  holdStart: string | null;
+  daysHeld: number;
+  holdMultiplier: number;
+  streakMultiplier: number;
+  eligible: boolean;
+  tasksCompleted: number;
+  earnedSol: number;
+  checkedAt: string;
+};
 
 function ResumeInner() {
   const params = useSearchParams();
@@ -17,6 +33,28 @@ function ResumeInner() {
   const [share, setShare] = useState(false);
 
   useEffect(() => setInput(address), [address]);
+
+  const [r, setR] = useState<Resume | null>(null);
+  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    setR(null);
+    if (!address || !isSolanaAddress(address)) return;
+    let alive = true;
+    setLoading(true);
+    setError("");
+    fetch(`/api/wallet/${address}`)
+      .then(async (res) => {
+        const body = await res.json().catch(() => ({}));
+        if (!alive) return;
+        if (!res.ok) setError(body.error || "Couldn't load this resume. Try again.");
+        else setR(body as Resume);
+      })
+      .catch(() => alive && setError("Couldn't reach the server. Try again."))
+      .finally(() => alive && setLoading(false));
+    return () => {
+      alive = false;
+    };
+  }, [address]);
 
   const lookup = (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,8 +67,7 @@ function ResumeInner() {
     router.push(`/resume/?address=${a}`);
   };
 
-  const r = address && isSolanaAddress(address) ? mockResume(address) : null;
-  const rank = r ? rankFor(r.tasks) : null;
+  const rank = r ? rankFor(r.tasksCompleted) : null;
 
 
   return (
@@ -53,36 +90,48 @@ function ResumeInner() {
         <button className="btn btn-primary">Look up</button>
       </form>
       {error && <p className="mt-2 text-stamp">{error}</p>}
+      {loading && <p className="mt-6 text-inksoft">Pulling the personnel file from the chain…</p>}
 
       {r && rank && (
         <article className="mt-10 sheet ruled max-w-2xl p-6 sm:p-10 relative">
           <p className="text-sm text-inksoft">Curriculum vitae</p>
-          <h2 className="font-condensed text-5xl font-black mt-1 break-all">{shortAddr(r.address)}</h2>
+          <h2 className="font-condensed text-5xl font-black mt-1 break-all" translate="no">{r.name || shortAddr(r.address)}</h2>
           <p className="text-xl mt-1">{rank.title}</p>
-          <div className="absolute top-6 right-6 text-xl stamp">Verified human</div>
+          <div className="absolute top-6 right-6 text-xl stamp">{r.eligible ? "Verified human" : "Trainee"}</div>
 
           <dl className="mt-8 grid grid-cols-[10rem_1fr] gap-y-3">
             <dt className="text-inksoft">Employed for</dt>
-            <dd>{r.daysHeld} days, never sold</dd>
-            <dt className="text-inksoft">Assignments</dt>
-            <dd>{r.tasks} completed</dd>
-            <dt className="text-inksoft">Salary earned</dt>
-            <dd>{r.earnedSol} SOL</dd>
+            <dd translate="no">{r.holdStart ? `${r.daysHeld} days, never dipped below the minimum` : "Not employed. Holds less than the minimum."}</dd>
             <dt className="text-inksoft">Holding</dt>
-            <dd>{r.balance.toLocaleString("en-US")} {TOKEN_TICKER}</dd>
+            <dd translate="no">{fmt(r.balance)} {TOKEN_TICKER}</dd>
+            <dt className="text-inksoft">Lowest in 24h</dt>
+            <dd translate="no">{fmt(r.minBalance24h)} {TOKEN_TICKER}</dd>
+            <dt className="text-inksoft">Holding bonus</dt>
+            <dd translate="no">{r.holdMultiplier > 0 ? `x${r.holdMultiplier.toFixed(1)}` : `none (needs ${fmt(MIN_HOLD)} for a full day)`}</dd>
+            <dt className="text-inksoft">Loyalty bonus</dt>
+            <dd translate="no">x{r.streakMultiplier.toFixed(2)}</dd>
+            <dt className="text-inksoft">Assignments</dt>
+            <dd translate="no">{r.tasksCompleted} completed</dd>
+            <dt className="text-inksoft">Salary earned</dt>
+            <dd translate="no">{r.earnedSol.toFixed(3)} SOL</dd>
             <dt className="text-inksoft">Next promotion</dt>
-            <dd>{rank.next ? `${rank.next.title}, in ${rank.next.min - r.tasks} tasks` : "None. This is the top."}</dd>
+            <dd>{rank.next ? `${rank.next.title}, in ${rank.next.min - r.tasksCompleted} tasks` : "None. This is the top."}</dd>
           </dl>
 
           <button className="btn btn-marker mt-8" onClick={() => setShare(true)}>
             Share on X
           </button>
-          <p className="mt-6 text-xs text-inksoft">Preview build: resume numbers are sample data.</p>
+          {!r.eligible && (
+            <p className="mt-6 text-sm text-inksoft">
+              Shifts from this address count as training until it holds {fmt(MIN_HOLD)} {TOKEN_TICKER} for a full day.
+            </p>
+          )}
+          <p className="mt-6 text-xs text-inksoft" translate="no">Read from the chain {new Date(r.checkedAt).toLocaleTimeString()}.</p>
         </article>
       )}
       {share && r && rank && (
         <ShareDialog
-          card={{ kind: "resume", title: rank.title, tasks: r.tasks, days: r.daysHeld, earned: r.earnedSol, address: r.address }}
+          card={{ kind: "resume", title: rank.title, tasks: r.tasksCompleted, days: r.daysHeld, earned: r.earnedSol, address: r.address }}
           onClose={() => setShare(false)}
         />
       )}
