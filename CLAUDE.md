@@ -250,7 +250,14 @@ PAYOUT держит ~0.05 SOL, крошечные `MAX_PAYOUT_SOL` / `DAILY_PAYO
       0003 запущен. Проверено 2026-10-05: поддельная капча отклоняется, гостевая смена на www.hiredby.fun
       сыграна, после перезагрузки сервер держит Coffee break. Turnstile работает только на hiredby.fun
       (старый ai-job-kappa.vercel.app не в списке доменов виджета).
-- [ ] HANDOFF 7–12.
+- [~] HANDOFF 7: `supabase/migrations/0004_payroll.sql` (функция `settle_payroll_hour`: порция = казна × 20% / 24,
+      доля по очкам, потолок 5%, начисление в `balances.accrued_sol`, идемпотентно по `payroll_hours.settled`),
+      `lib/server/treasury.ts` (казна = TREASURY + PAYOUT − долг), `lib/server/payroll.ts` (догоняет пропущенные
+      часы за 48 ч), `/api/cron/payroll` (только с `Authorization: Bearer CRON_SECRET`). Расписание — pg_cron + pg_net
+      в Supabase (`supabase/cron_payroll.sql`, секрет вписывается руками в SQL Editor, не в git), в :02 каждого часа.
+      `/api/health` показывает cron_secret set/missing и last_payroll_hour.
+      Осталось от команды: CRON_SECRET в Vercel, запустить 0004 и cron_payroll.sql.
+- [ ] HANDOFF 8–12.
 
 Переменные в Vercel уже есть: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY,
 HELIUS_API_KEY, NEXT_PUBLIC_SOLANA_NETWORK=mainnet, NEXT_PUBLIC_TREASURY_ADDRESS, NEXT_PUBLIC_PAYOUT_ADDRESS,

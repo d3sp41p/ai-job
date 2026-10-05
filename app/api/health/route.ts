@@ -1,4 +1,4 @@
-import { rpc, publicKeyIsBlocked, DbError } from "@/lib/server/db";
+import { rpc, select, publicKeyIsBlocked, DbError } from "@/lib/server/db";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +9,7 @@ export async function GET() {
   try {
     const h = await rpc<{ tables: number; rls_off: number; payouts_paused: boolean }>("health_check");
     const blocked = await publicKeyIsBlocked().catch(() => null);
+    const [lastHour] = await select("payroll_hours", { columns: "hour_start,workers", filters: { settled: "is.true" }, order: "hour_start.desc", limit: 1 }).catch(() => []);
     const ok = h.tables === EXPECTED_TABLES && h.rls_off === 0 && blocked !== false;
     return Response.json({
       ok,
@@ -23,6 +24,8 @@ export async function GET() {
         site_key: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? "set" : "missing",
         secret_key: process.env.TURNSTILE_SECRET_KEY ? "set" : "missing",
       },
+      cron_secret: (process.env.CRON_SECRET || "").trim().length >= 16 ? "set" : "missing or shorter than 16",
+      last_payroll_hour: lastHour ? lastHour.hour_start : "never",
     }, { status: ok ? 200 : 500 });
   } catch (e) {
     const err = e as DbError;
