@@ -50,7 +50,7 @@ const pct = (n: number) => `${Math.round(n * 100)}%`;
 const FAQ = [
   {
     q: "Can the treasury run out?",
-    a: `No. Salaries are always a share of what's in the treasury right now: ${pct(SALARY_POOL_SHARE)} per day, paid out in 15-minute slices. After a payout, the next one is counted from what's left, plus any new fees. The treasury can shrink if trading stops, but it never hits zero.`,
+    a: `No. Salaries are always a share of what's in the treasury right now: ${((SALARY_POOL_SHARE / PAYOUTS_PER_DAY) * 100).toFixed(1)}% every 15 minutes. After a payout, the next one is counted from what's left, plus any new fees. The treasury can shrink if trading stops, but it never hits zero.`,
   },
   {
     q: "Why does my salary change from hour to hour?",

@@ -15,13 +15,14 @@ import {
 } from "@/lib/config";
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;
+const perRound = () => `${((SALARY_POOL_SHARE / PAYOUTS_PER_DAY) * 100).toFixed(1)}%`;
 
 // The payroll rules in one block. Every number comes from lib/config.ts.
 export default function Tokenomics({ title = "Payroll tokenomics" }: { title?: string }) {
-  const flow = ["Every trade", "Creator fees", "Treasury", `${pct(SALARY_POOL_SHARE)} a day`, `${PAYOUTS_PER_DAY} rounds`, "Your wallet"];
+  const flow = ["Every trade", "Creator fees", "Treasury", `${perRound()} every round`, `${PAYOUTS_PER_DAY} rounds`, "Your wallet"];
   const tiles: [string, string, string][] = [
     ["Fees to workers", "100%", "The team takes 0. Every lamport of creator fees goes to the payroll."],
-    ["Salary pool", `${pct(SALARY_POOL_SHARE)} / day`, `Paid as ${((SALARY_POOL_SHARE / PAYOUTS_PER_DAY) * 100).toFixed(2)}% of the treasury every round, so it never runs dry.`],
+    ["Salary pool", `${perRound()} / round`, "of the treasury, every 15 minutes. Fees go to workers almost as fast as they come in, and the pool never runs dry."],
     ["Payday", `Every ${PAYROLL_MINUTES} min`, `${PAYOUTS_PER_DAY} payroll rounds a day, sent straight to your address.`],
     ["Shifts", HAS_COOLDOWN ? `Every ${COOLDOWN_MINUTES} min` : "Any time", `Easy ${BASE_POINTS.easy}, Medium ${BASE_POINTS.medium}, Hard ${BASE_POINTS.hard} base points.`],
     ["To get hired", `${(MIN_HOLD / 1000).toLocaleString("en-US")}K`, `${TOKEN_TICKER} on your address. Paid from the first minute you hold it.`],
