@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {
+  PAYOUTS_PER_DAY,
   SALARY_POOL_SHARE,
   BASE_POINTS,
   SHIFT_PACE,
@@ -19,7 +20,7 @@ const STEPS = [
   { title: "Hold the coin", body: `Keep at least ${MIN_HOLD.toLocaleString("en-US")} ${TOKEN_TICKER} in your wallet. Longer and bigger holds earn a higher pay multiplier.` },
   { title: "Paste your address", body: "No wallet connection, no signature. Or try a shift as a guest first." },
   { title: "Do the assignment", body: `Pick a shift and play the mini-game the AI hands you. Assignments ${SHIFT_PACE}.` },
-  { title: "Get paid every 15 minutes", body: "Every 15 minutes a slice of the salary pool is split by points and sent to your wallet automatically." },
+  { title: "Get paid every 30 minutes", body: "Every 30 minutes a slice of the salary pool is split by points and sent to your wallet automatically." },
 ];
 
 export default function Home() {
@@ -158,7 +159,7 @@ export default function Home() {
         <div>
           <h2 className="font-condensed text-5xl font-extrabold">100% of fees go to the workers</h2>
           <p className="mt-3 text-inksoft max-w-md">
-            Every trade feeds the treasury. Every 15 minutes a slice of it ({((SALARY_POOL_SHARE / 96) * 100).toFixed(2)}%) is paid out as salaries. The bigger
+            Every trade feeds the treasury. Every 30 minutes a slice of it ({((SALARY_POOL_SHARE / PAYOUTS_PER_DAY) * 100).toFixed(2)}%) is paid out as salaries. The bigger
             the treasury, the bigger every salary. All of it is public.
           </p>
           <Link href="/dashboard/" className="btn btn-plain mt-6">

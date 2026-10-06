@@ -44,7 +44,7 @@ export const GUEST_WINDOW_MINUTES = 30; // only the first passed guest shift in 
 export const SALARY_POOL_SHARE = Number(process.env.NEXT_PUBLIC_SALARY_POOL_SHARE) || 1;
 // Payroll rounds: the pool is paid out in slices every PAYROLL_MINUTES (team decision 2026-10-06: 15).
 // The database buckets shifts into the same periods (payroll_period() in 0006_payroll_15min.sql) — change both together.
-export const PAYROLL_MINUTES = 15;
+export const PAYROLL_MINUTES = 30; // in sync with the 30-minute break (0007_payroll_30min.sql)
 export const PERIOD_MS = PAYROLL_MINUTES * 60_000;
 export const PAYOUTS_PER_DAY = (24 * 60) / PAYROLL_MINUTES; // 96 slices a day
 export const periodStart = (ms: number) => Math.floor(ms / PERIOD_MS) * PERIOD_MS;

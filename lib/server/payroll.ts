@@ -48,7 +48,8 @@ export async function runPayroll() {
       p_cap: WALLET_HOURLY_CAP,
     });
     settled.push(r);
-    if (!r?.ok) break;
+    // a period the database refuses (not over yet / not aligned) must not block the ones after it
+    if (!r?.ok && r?.error !== "period_not_over") break;
   }
   const t = await readTreasury().catch(() => null);
   return { settled, payoutWalletShort: t?.payoutWalletShort ?? null };

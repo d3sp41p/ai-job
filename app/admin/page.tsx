@@ -118,7 +118,7 @@ export default function AdminPage() {
             <p className="text-sm text-inksoft">Automatic payouts</p>
             <p className={`font-condensed text-4xl font-black ${d.paused ? "text-stamp" : "text-ok"}`}>{d.paused ? "PAUSED" : "RUNNING"}</p>
             <p className="text-sm text-inksoft mt-1">
-              Salaries are still counted every 15 minutes while paused. They are sent when you resume.
+              Salaries are still counted every 30 minutes while paused. They are sent when you resume.
             </p>
           </div>
           {d.paused ? (
@@ -170,7 +170,7 @@ export default function AdminPage() {
 
       <Table
         title="Payouts that need attention"
-        empty="Nothing stuck. Pending payouts are checked against the chain every 15 minutes."
+        empty="Nothing stuck. Pending payouts are checked against the chain every 30 minutes."
         head={["When", "To", "Amount", "Status", "Transaction"]}
         rows={d.payouts.map((p) => [
           timeAgo(Date.parse(p.created_at), now),
@@ -191,8 +191,8 @@ export default function AdminPage() {
       />
 
       <Table
-        title="Payroll rounds (last 6 hours)"
-        empty="No hour has been settled yet. The scheduler runs at :02, :17, :32 and :47."
+        title="Payroll rounds (last 12 hours)"
+        empty="No hour has been settled yet. The scheduler runs at :02 and :32."
         head={["Hour (UTC)", "Treasury", "Slice", "Workers", "Points", "Sent to balances"]}
         rows={d.hours.map((h) => [
           String(h.hour_start).slice(5, 16).replace("T", " "),

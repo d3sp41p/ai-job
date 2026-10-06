@@ -372,8 +372,8 @@ export default function OfficePage() {
             <p className="font-condensed text-5xl font-black mt-1" translate="no">{emp.unpaidSol.toFixed(3)} SOL</p>
             <p className="text-sm text-inksoft mt-1">
               {emp.isGuest
-                ? "Add your address and salary is sent to it automatically every 15 minutes."
-                : `Sent to ${shortAddr(emp.address)} automatically every 15 minutes once it reaches ${MIN_CLAIM_SOL} SOL. No claiming, no fees for you.`}
+                ? "Add your address and salary is sent to it automatically every 30 minutes."
+                : `Sent to ${shortAddr(emp.address)} automatically every 30 minutes once it reaches ${MIN_CLAIM_SOL} SOL. No claiming, no fees for you.`}
             </p>
             <div className="mt-4 grid grid-cols-2 gap-3 border-t border-rule pt-3">
               <div>

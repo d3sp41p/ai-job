@@ -225,7 +225,8 @@ CRON_SECRET=
 до этого было: пул 25% казны/сутки, раунд 15 мин (96/сутки), потолок 50% раунда на кошелёк, перерыв 30 мин (вечером 2026-10-06; до этого 10),
 выплата от 0.001 SOL, 12 смен полной оплаты, дальше 25%. Всё в lib/config.ts, env NEXT_PUBLIC_* переопределяют.
 Блок `components/Tokenomics.tsx` на главной и на Payroll.
-ЗАРПЛАТА КАЖДЫЕ 15 МИНУТ (решение команды 2026-10-06): `PAYROLL_MINUTES = 15`, `PAYOUTS_PER_DAY = 96` в config;
+ЗАРПЛАТА КАЖДЫЕ 30 МИНУТ (вечер 2026-10-06, синхронно с перерывом 30 мин; утром было 15): `PAYROLL_MINUTES = 30`,
+`PAYOUTS_PER_DAY = 48`, `0007_payroll_30min.sql` (payroll_period = date_bin 30 min, cron `2,32 * * * *`). Ранее 15 мин:
 в базе `payroll_period()` = date_bin(15 min) из `0006_payroll_15min.sql` (finish_shift, credit_guest_shift, settle_payroll_hour),
 pg_cron `2,17,32,47 * * * *`. Колонки называются payroll_hour/hour_start, но это начало 15-минутного раунда.
 Функции и константы с "hourly" в имени (hourlyPayroll, WALLET_HOURLY_CAP) теперь означают «за раунд».
