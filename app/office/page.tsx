@@ -15,6 +15,7 @@ import {
   BUY_URL,
   hourlyPay,
   hourlyPayroll,
+  PERIOD_MS,
   holdMultiplier,
   rankFor,
   streakMultiplier,
@@ -71,7 +72,7 @@ export default function OfficePage() {
   const onCooldown = emp.cooldownEndsAt !== null && emp.cooldownEndsAt > now;
   const breakLeft = onCooldown ? (emp.cooldownEndsAt! - now) / (Math.max(1, COOLDOWN_MINUTES) * 60_000) : 0;
   const eligible = emp.isGuest || emp.balance >= MIN_HOLD;
-  const nextHour = Math.ceil((now + 1) / 3_600_000) * 3_600_000;
+  const nextHour = Math.ceil((now + 1) / PERIOD_MS) * PERIOD_MS;
   const hourLeft = nextHour - now;
   const slice = hourlyPayroll(STATS.treasurySol);
   const myHourPay = hourlyPay(STATS.treasurySol, emp.pointsThisHour, STATS.hourPoints + emp.pointsThisHour);
@@ -326,7 +327,7 @@ export default function OfficePage() {
         <section className="sheet grid md:grid-cols-2">
           <div className="p-5 border-b md:border-b-0 md:border-r border-rule">
             <div className="flex items-baseline justify-between gap-2">
-              <p className="text-sm text-inksoft">This hour&rsquo;s payroll</p>
+              <p className="text-sm text-inksoft">This round&rsquo;s payroll</p>
               <p className="text-sm text-inksoft">
                 Paid in <span translate="no" className="font-semibold text-ink tabular-nums">{now ? formatDuration(hourLeft) : "--:--"}</span>
               </p>
@@ -335,15 +336,15 @@ export default function OfficePage() {
               {slice.toFixed(slice < 0.001 ? 5 : 3)} SOL
             </p>
             <p className="text-sm text-inksoft">
-              Shared by {STATS.workersThisHour} employees working this hour.
+              Shared by {STATS.workersThisHour} employees working this round.
             </p>
             <div className="mt-4 border-t border-rule pt-3 grid grid-cols-2 gap-3">
               <div>
-                <p className="text-xs text-inksoft">Your points this hour</p>
+                <p className="text-xs text-inksoft">Your points this round</p>
                 <p className="text-lg font-semibold">{emp.pointsThisHour}</p>
               </div>
               <div>
-                <p className="text-xs text-inksoft">Your pay this hour</p>
+                <p className="text-xs text-inksoft">Your pay this round</p>
                 <p className="text-lg font-semibold" translate="no">≈ {myHourPay.toFixed(4)} SOL</p>
               </div>
             </div>
@@ -370,8 +371,8 @@ export default function OfficePage() {
             <p className="font-condensed text-5xl font-black mt-1" translate="no">{emp.unpaidSol.toFixed(3)} SOL</p>
             <p className="text-sm text-inksoft mt-1">
               {emp.isGuest
-                ? "Add your address and salary is sent to it automatically every hour."
-                : `Sent to ${shortAddr(emp.address)} automatically at the top of the hour once it reaches ${MIN_CLAIM_SOL} SOL. No claiming, no fees for you.`}
+                ? "Add your address and salary is sent to it automatically every 15 minutes."
+                : `Sent to ${shortAddr(emp.address)} automatically every 15 minutes once it reaches ${MIN_CLAIM_SOL} SOL. No claiming, no fees for you.`}
             </p>
             <div className="mt-4 grid grid-cols-2 gap-3 border-t border-rule pt-3">
               <div>

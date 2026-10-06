@@ -17,7 +17,7 @@ const STEPS = [
   { title: "Hold the coin", body: `Keep at least ${MIN_HOLD.toLocaleString("en-US")} ${TOKEN_TICKER} in your wallet. Longer and bigger holds earn a higher pay multiplier.` },
   { title: "Paste your address", body: "No wallet connection, no signature. Or try a shift as a guest first." },
   { title: "Do the assignment", body: `Pick a shift and play the mini-game the AI hands you. Assignments ${SHIFT_PACE}.` },
-  { title: "Get paid every hour", body: "Every hour a slice of the salary pool is split by points and sent to your wallet automatically." },
+  { title: "Get paid every 15 minutes", body: "Every 15 minutes a slice of the salary pool is split by points and sent to your wallet automatically." },
 ];
 
 export default function Home() {
@@ -119,7 +119,7 @@ export default function Home() {
           })}
         </div>
         <p className="mt-4 text-sm text-inksoft">
-          Points decide your share of each hourly payroll. The more the coin trades, the bigger the payroll.{" "}
+          Points decide your share of each payroll round. The more the coin trades, the bigger the payroll.{" "}
           <Link href="/how-it-works/#salary" className="underline underline-offset-4">
             How salaries work
           </Link>
@@ -156,7 +156,7 @@ export default function Home() {
         <div>
           <h2 className="font-condensed text-5xl font-extrabold">100% of fees go to the workers</h2>
           <p className="mt-3 text-inksoft max-w-md">
-            Every trade feeds the treasury. 20% of it is always the salary pool, paid out every hour. The bigger
+            Every trade feeds the treasury. 20% of it is always the salary pool, paid out every 15 minutes. The bigger
             the treasury, the bigger every salary. All of it is public.
           </p>
           <Link href="/dashboard/" className="btn btn-plain mt-6">

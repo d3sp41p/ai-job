@@ -337,7 +337,7 @@ export default function GameRunner({
                     <dd className="font-semibold" translate="no">≈ {pay.toFixed(4)} SOL</dd>
                     {capped && (
                       <dd className="col-span-2 text-xs text-inksoft text-right -mt-1">
-                        Hit the hourly max of {Math.round(WALLET_HOURLY_CAP * 100)}% per wallet. The rest stays in the treasury.
+                        Hit the per-round max of {Math.round(WALLET_HOURLY_CAP * 100)}% per wallet. The rest stays in the treasury.
                       </dd>
                     )}
                   </>
@@ -389,7 +389,7 @@ export default function GameRunner({
                       : result.guest === "practice"
                         ? "Practice shifts aren't paid. Add your address to start earning."
                         : passed
-                          ? "Paid with the hourly payroll, straight to your wallet. The final amount depends on how many points everyone earns this hour."
+                          ? "Paid with the payroll round, straight to your wallet. The final amount depends on how many points everyone earns this round."
                           : `The AI has noted this in your file. Score ${Math.round(QUALITY_THRESHOLD * 100)}% or more next time.`}
                 </p>
               )}

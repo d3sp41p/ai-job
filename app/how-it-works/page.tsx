@@ -50,11 +50,11 @@ const pct = (n: number) => `${Math.round(n * 100)}%`;
 const FAQ = [
   {
     q: "Can the treasury run out?",
-    a: `No. Salaries are always a share of what's in the treasury right now: ${pct(SALARY_POOL_SHARE)} per day, paid out in hourly slices. After a payout, the next one is counted from what's left, plus any new fees. The treasury can shrink if trading stops, but it never hits zero.`,
+    a: `No. Salaries are always a share of what's in the treasury right now: ${pct(SALARY_POOL_SHARE)} per day, paid out in 15-minute slices. After a payout, the next one is counted from what's left, plus any new fees. The treasury can shrink if trading stops, but it never hits zero.`,
   },
   {
     q: "Why does my salary change from hour to hour?",
-    a: "Each hourly slice is shared by everyone who worked that hour. More fees make the slice bigger. More employees in the same hour make each share a bit smaller.",
+    a: "Each 15-minute slice is shared by everyone who worked that hour. More fees make the slice bigger. More employees in the same hour make each share a bit smaller.",
   },
   {
     q: "Can salaries go down?",
@@ -68,7 +68,7 @@ const FAQ = [
   },
   {
     q: "Do I need to claim my salary?",
-    a: `No. Salary is sent to your address automatically at the top of every hour, once you have at least ${MIN_CLAIM_SOL} SOL waiting. Smaller amounts roll over to the next hour.`,
+    a: `No. Salary is sent to your address automatically every 15 minutes, once you have at least ${MIN_CLAIM_SOL} SOL waiting. Smaller amounts roll over to the next round.`,
   },
   {
     q: "Do I have to connect my wallet?",
@@ -124,7 +124,7 @@ export default function HowItWorks() {
           {[
             ["Fees to workers", "100%"],
             ["Salary pool", `${pct(SALARY_POOL_SHARE)} of treasury`],
-            ["Payday", "Every hour"],
+            ["Payday", "Every 15 minutes"],
             ["Shift", HAS_COOLDOWN ? `Every ${COOLDOWN_MINUTES} min` : "Any time"],
           ].map(([k, v], i) => (
             <div key={k} className={`p-4 ${i % 2 ? "border-l" : ""} ${i > 1 ? "border-t sm:border-t-0" : ""} ${i === 2 ? "sm:border-l" : ""} border-rule`}>
@@ -154,7 +154,7 @@ export default function HowItWorks() {
               ["Buy the coin", `Get at least ${MIN_HOLD.toLocaleString("en-US")} ${TOKEN_TICKER} (0.01% of supply) on pump.fun and keep it in your wallet.`],
               ["Paste your address", "Open the Office and paste your Solana address. No wallet connection, no signature. Or try a shift as a guest first."],
               ["Work a shift", `Pick Part-time, Full-time or Overtime and play the mini-game you're given. Shifts ${SHIFT_PACE}.`],
-              ["Get paid every hour", "At the top of each hour your share of the payroll is sent to your wallet automatically. No claiming."],
+              ["Get paid every 15 minutes", "Every 15 minutes your share of the payroll is sent to your wallet automatically. No claiming."],
             ].map(([t, b], i) => (
               <li key={t} className="sheet p-5">
                 <span className="font-condensed text-5xl font-black text-rule leading-none">{i + 1}</span>
@@ -217,7 +217,7 @@ export default function HowItWorks() {
         <Section id="salary" title="How salaries are paid">
           <p>
             The treasury keeps every fee. A fixed share of it, {pct(SALARY_POOL_SHARE)}, is the salary pool. The pool is
-            paid out in small slices, one every hour, so new fees start paying salaries within the hour.
+            paid out in small slices, one every 15 minutes, so new fees start paying salaries within the hour.
           </p>
           <div className="sheet p-4 sm:p-6">
             <TreasuryTank treasurySol={STATS.treasurySol} />
@@ -226,8 +226,8 @@ export default function HowItWorks() {
           <ol className="grid gap-3">
             {[
               ["The pool is always 20% of the treasury.", `Treasury ${fmtSol(STATS.treasurySol)} SOL means a salary pool of ${fmtSol(pool)} SOL. Treasury grows, pool grows.`],
-              [`Every hour, 1/${PAYOUTS_PER_DAY} of the pool is paid out.`, `Right now that's ${hourlyPayroll(STATS.treasurySol).toFixed(5)} SOL per hour, around the clock.`],
-              ["The hourly slice is split by points.", "Everyone who finished a shift that hour gets a share that matches their points."],
+              [`Every 15 minutes, 1/${PAYOUTS_PER_DAY} of the pool is paid out.`, `Right now that's ${hourlyPayroll(STATS.treasurySol).toFixed(5)} SOL every 15 minutes, around the clock.`],
+              ["The 15-minute slice is split by points.", "Everyone who finished a shift that hour gets a share that matches their points."],
               ["The next slice is counted from what's left.", "After a payout the treasury is a bit smaller, new fees top it up, and the next slice is 20% ÷ 24 of the new balance. It never runs dry."],
             ].map(([t, b]) => (
               <li key={t} className="flex gap-4">
@@ -289,7 +289,7 @@ export default function HowItWorks() {
         </Section>
 
         <Section id="points" title="Points and bonuses">
-          <p>Points decide your slice of each hourly payroll. One shift earns:</p>
+          <p>Points decide your slice of each payroll round. One shift earns:</p>
           <div className="sheet p-5 sm:p-6">
             <p className="font-condensed text-3xl sm:text-4xl font-black leading-tight">
               Base points × your score × hold bonus × loyalty bonus
@@ -365,7 +365,7 @@ export default function HowItWorks() {
           <ul className="grid gap-px bg-rule border border-rule rounded-2xl overflow-hidden sm:grid-cols-2">
             {[
               [`${PAID_SHIFTS_PER_DAY}`, "paid shifts a day", `Work as much as you want, but after ${PAID_SHIFTS_PER_DAY} shifts in 24 hours each shift earns only ${pct(OVERTIME_RATE)}. Overtime is paid at intern rates.`],
-              [pct(WALLET_HOURLY_CAP), "max per wallet per hour", "No wallet can take more than this share of an hourly slice. Anything above it stays in the treasury."],
+              [pct(WALLET_HOURLY_CAP), "max per wallet per round", "No wallet can take more than this share of a 15-minute slice. Anything above it stays in the treasury."],
               [pct(QUALITY_THRESHOLD), "minimum score", "Score below this and the shift pays nothing. Sloppy work and lazy bots don't get paid."],
               ["24h", "lowest balance counts", "Your hold bonus uses your lowest balance of the day. Buying right before a shift and selling after doesn't help."],
               ["0", "loyalty for new wallets", "Moving coins to a new wallet resets loyalty on both. Splitting a bag into many wallets doesn't pay."],
@@ -505,19 +505,19 @@ function SalaryCalculator() {
       <div className="mt-4 grid gap-6 md:grid-cols-[1fr_15rem] md:items-end">
         <div className="grid gap-4">
           <Slider id="calc-treasury" label="Treasury" value={treasury} min={5} max={300} step={5} suffix=" SOL" onChange={setTreasury} />
-          <Slider id="calc-workers" label="Employees working this hour" value={workers} min={1} max={500} step={1} onChange={setWorkers} />
+          <Slider id="calc-workers" label="Employees working this round" value={workers} min={1} max={500} step={1} onChange={setWorkers} />
           <Slider id="calc-points" label="Your points for the shift" value={points} min={10} max={270} step={5} onChange={setPoints} />
         </div>
         <div className="md:pl-6 md:border-l border-rule grid gap-2">
           <Row k="Salary pool" v={`${salaryPool(treasury).toFixed(2)} SOL`} />
-          <Row k="This hour's payroll" v={`${slice.toFixed(3)} SOL`} />
+          <Row k="This round's payroll" v={`${slice.toFixed(3)} SOL`} />
           <div className="border-t border-rule pt-2">
             <p className="text-ink/60 text-sm">Your pay for this shift</p>
             <p className="font-condensed text-5xl font-black text-marker leading-none mt-1 tabular-nums" translate="no">
               {pay.toFixed(4)}
             </p>
             <p className="text-ink/60 text-sm">
-              SOL{capped ? `, capped at ${pct(WALLET_HOURLY_CAP)} of the hour` : ""}
+              SOL{capped ? `, capped at ${pct(WALLET_HOURLY_CAP)} of the round` : ""}
             </p>
             <p className="mt-2 text-sm text-ink/60">
               ≈ {(pay * PAID_SHIFTS_PER_DAY).toFixed(3)} SOL for {PAID_SHIFTS_PER_DAY} paid shifts a day

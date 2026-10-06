@@ -38,7 +38,12 @@ export const GUEST_WINDOW_MINUTES = 30; // only the first passed guest shift in 
 // ---- Economy ----
 // 100% of creator fees go to the treasury. Nothing goes to the team.
 export const SALARY_POOL_SHARE = 0.2; // salary pool is always 20% of the treasury
-export const PAYOUTS_PER_DAY = 24; // the pool is paid out in hourly slices: 1/24 each hour
+// Payroll rounds: the pool is paid out in slices every PAYROLL_MINUTES (team decision 2026-10-06: 15).
+// The database buckets shifts into the same periods (payroll_period() in 0006_payroll_15min.sql) — change both together.
+export const PAYROLL_MINUTES = 15;
+export const PERIOD_MS = PAYROLL_MINUTES * 60_000;
+export const PAYOUTS_PER_DAY = (24 * 60) / PAYROLL_MINUTES; // 96 slices a day
+export const periodStart = (ms: number) => Math.floor(ms / PERIOD_MS) * PERIOD_MS;
 export const PAID_SHIFTS_PER_DAY = 12; // full pay for the first 12 shifts in 24 hours
 export const OVERTIME_RATE = 0.25; // shifts after that earn 25% of points
 export const WALLET_HOURLY_CAP = Number(process.env.NEXT_PUBLIC_WALLET_HOURLY_CAP) || 0.25; // one wallet takes at most 25% of an hourly slice

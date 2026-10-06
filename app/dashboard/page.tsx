@@ -7,7 +7,7 @@ import { fmtSol, solDecimals } from "@/lib/format";
 import CountUp from "@/components/CountUp";
 import { formatDuration, timeAgo, useNow } from "@/components/useNow";
 import TreasuryChart from "@/components/TreasuryChart";
-import { hourlyPayroll, salaryPool, SALARY_POOL_SHARE } from "@/lib/config";
+import { hourlyPayroll, salaryPool, SALARY_POOL_SHARE, PERIOD_MS } from "@/lib/config";
 
 const solscan = (path: string) => `https://solscan.io/${path}`;
 
@@ -16,7 +16,7 @@ export default function DashboardPage() {
   const STATS = useStats();
   const TREASURY_ADDRESS = STATS.treasuryAddress;
   const PAYOUT_ADDRESS = STATS.payoutAddress;
-  const nextHour = Math.ceil((now + 1) / 3_600_000) * 3_600_000;
+  const nextHour = Math.ceil((now + 1) / PERIOD_MS) * PERIOD_MS;
   const pool = salaryPool(STATS.treasurySol);
   const slice = hourlyPayroll(STATS.treasurySol);
   const hist = STATS.treasuryHistory;
@@ -27,7 +27,7 @@ export default function DashboardPage() {
       <h1 className="font-condensed text-6xl md:text-7xl font-black leading-[0.9]">Payroll</h1>
       <p className="mt-3 max-w-xl text-inksoft">
         100% of creator fees go to the employees. Here is every SOL: what&rsquo;s in the treasury, what&rsquo;s being paid
-        this hour, and every salary ever sent.
+        this round, and every salary ever sent.
       </p>
 
       {/* Treasury hero */}
@@ -50,11 +50,11 @@ export default function DashboardPage() {
             <p className="font-condensed text-5xl font-black mt-1">
               <CountUp value={pool} decimals={solDecimals(pool)} suffix=" SOL" />
             </p>
-            <p className="text-sm text-inksoft mt-1">Paid out over the next 24 hours, one slice every hour.</p>
+            <p className="text-sm text-inksoft mt-1">Paid out over the next 24 hours, one slice every 15 minutes.</p>
           </div>
           <div className="rounded-[20px] p-5 sm:p-6 bg-marker text-paper">
             <div className="flex items-baseline justify-between gap-2">
-              <p className="text-sm">This hour&rsquo;s payroll</p>
+              <p className="text-sm">This round&rsquo;s payroll</p>
               <p className="text-sm">
                 Paid in{" "}
                 <span translate="no" className="font-semibold tabular-nums">
@@ -108,7 +108,7 @@ export default function DashboardPage() {
             </dd>
           </div>
           <div className="min-w-0">
-            <dt className="text-sm text-inksoft">Pay wallet: sends salaries every hour</dt>
+            <dt className="text-sm text-inksoft">Pay wallet: sends salaries every 15 minutes</dt>
             <dd>
               <a className="underline underline-offset-4 break-all" href={solscan(`account/${PAYOUT_ADDRESS}`)} target="_blank" rel="noreferrer">
                 {PAYOUT_ADDRESS}
@@ -158,7 +158,7 @@ export default function DashboardPage() {
         <section className="sheet">
           <h2 className="px-5 pt-5 font-condensed text-3xl font-black">Latest salaries</h2>
           <ul className="mt-3">
-            {STATS.recentPayouts.length === 0 && <li className="px-5 py-4 border-t border-rule text-inksoft">No salaries sent yet. The first one goes out at the top of an hour.</li>}
+            {STATS.recentPayouts.length === 0 && <li className="px-5 py-4 border-t border-rule text-inksoft">No salaries sent yet. The first one goes out within 15 minutes.</li>}
             {STATS.recentPayouts.map((p) => (
               <li key={p.tx} className="px-5 py-2.5 border-t border-rule flex items-baseline justify-between gap-3 text-[15px]">
                 <span>

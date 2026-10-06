@@ -118,7 +118,7 @@ export default function AdminPage() {
             <p className="text-sm text-inksoft">Automatic payouts</p>
             <p className={`font-condensed text-4xl font-black ${d.paused ? "text-stamp" : "text-ok"}`}>{d.paused ? "PAUSED" : "RUNNING"}</p>
             <p className="text-sm text-inksoft mt-1">
-              Salaries are still counted every hour while paused. They are sent when you resume.
+              Salaries are still counted every 15 minutes while paused. They are sent when you resume.
             </p>
           </div>
           {d.paused ? (
@@ -159,7 +159,7 @@ export default function AdminPage() {
 
       <section className="sheet p-5 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="font-semibold">Run the hourly job now</p>
+          <p className="font-semibold">Run the payroll now</p>
           <p className="text-sm text-inksoft">Settles finished hours and sends salaries that are due. Safe to press twice.</p>
         </div>
         <button className="btn btn-plain" disabled={!!busy} onClick={() => act("run_now")}>
@@ -170,7 +170,7 @@ export default function AdminPage() {
 
       <Table
         title="Payouts that need attention"
-        empty="Nothing stuck. Pending payouts are checked against the chain every hour."
+        empty="Nothing stuck. Pending payouts are checked against the chain every 15 minutes."
         head={["When", "To", "Amount", "Status", "Transaction"]}
         rows={d.payouts.map((p) => [
           timeAgo(Date.parse(p.created_at), now),
@@ -191,8 +191,8 @@ export default function AdminPage() {
       />
 
       <Table
-        title="Hourly payroll (last 24 hours)"
-        empty="No hour has been settled yet. The scheduler runs at :02 every hour."
+        title="Payroll rounds (last 6 hours)"
+        empty="No hour has been settled yet. The scheduler runs at :02, :17, :32 and :47."
         head={["Hour (UTC)", "Treasury", "Slice", "Workers", "Points", "Sent to balances"]}
         rows={d.hours.map((h) => [
           String(h.hour_start).slice(5, 16).replace("T", " "),
@@ -226,7 +226,7 @@ export default function AdminPage() {
 
       <section className="sheet p-5 grid gap-3">
         <h2 className="font-condensed text-3xl font-black">Ban an address</h2>
-        <p className="text-sm text-inksoft">A banned address can&rsquo;t start shifts, gets nothing in the hourly payroll and receives no payouts.</p>
+        <p className="text-sm text-inksoft">A banned address can&rsquo;t start shifts, gets nothing in the payroll round and receives no payouts.</p>
         <div className="flex flex-wrap gap-2">
           <input
             value={banAddr}

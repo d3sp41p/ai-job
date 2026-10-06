@@ -15,6 +15,7 @@ import {
   SHIFTS_PER_IP,
   SHIFT_EXPIRES_MINUTES,
   computePoints,
+  periodStart,
   rankFor,
   type Difficulty,
 } from "@/lib/config";
@@ -212,7 +213,7 @@ export async function redeemGuestShift(s: Session, address: string) {
 export async function workState(s: Session) {
   const or = s.a ? `(device_id.eq.${s.d},wallet.eq.${s.a})` : `(device_id.eq.${s.d})`;
   const now = new Date();
-  const hour = new Date(Math.floor(now.getTime() / 3_600_000) * 3_600_000).toISOString();
+  const hour = new Date(periodStart(now.getTime())).toISOString(); // current payroll round
   const [last, pending, mine, hourRows, lastPaid] = await Promise.all([
     select("game_sessions", { columns: "started_at", filters: { or }, order: "started_at.desc", limit: 1 }),
     select("guest_shifts", {

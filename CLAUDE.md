@@ -220,6 +220,10 @@ CRON_SECRET=
 - Дальше: см. «Прогресс» ниже.
 
 ## Прогресс (обновлено 2026-10-06)
+ЗАРПЛАТА КАЖДЫЕ 15 МИНУТ (решение команды 2026-10-06): `PAYROLL_MINUTES = 15`, `PAYOUTS_PER_DAY = 96` в config;
+в базе `payroll_period()` = date_bin(15 min) из `0006_payroll_15min.sql` (finish_shift, credit_guest_shift, settle_payroll_hour),
+pg_cron `2,17,32,47 * * * *`. Колонки называются payroll_hour/hour_start, но это начало 15-минутного раунда.
+Функции и константы с "hourly" в имени (hourlyPayroll, WALLET_HOURLY_CAP) теперь означают «за раунд».
 После запуска (2026-10-06): потолок на кошелёк 5% → 25% (NEXT_PUBLIC_WALLET_HOURLY_CAP), минимальная выплата
 0.01 → 0.002 SOL (NEXT_PUBLIC_MIN_CLAIM_SOL): при 12 работниках и порции 0.035 SOL/ч зарплаты не дорастали до выплаты.
 Кулдаун между сменами СНЯТ для всех (решение команды 2026-10-06): `COOLDOWN_MINUTES` = NEXT_PUBLIC_COOLDOWN_MINUTES

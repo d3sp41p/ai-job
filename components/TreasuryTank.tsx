@@ -3,7 +3,7 @@
 import { hourlyPayroll, PAYOUTS_PER_DAY, salaryPool, SALARY_POOL_SHARE } from "@/lib/config";
 
 // Illustration of the payroll: fees pour into the treasury tank, the top 20% is the
-// salary pool, and a tap releases 1/24 of the pool every hour to the employees.
+// salary pool, and a tap releases 1/96 of the pool every 15 minutes to the employees.
 export default function TreasuryTank({ treasurySol }: { treasurySol: number }) {
   const pool = salaryPool(treasurySol);
   const hour = hourlyPayroll(treasurySol);
@@ -16,7 +16,7 @@ export default function TreasuryTank({ treasurySol }: { treasurySol: number }) {
 
   return (
     <svg viewBox="0 0 480 430" className="w-full h-auto" role="img"
-      aria-label={`Treasury ${treasurySol} SOL. Salary pool ${pool.toFixed(2)} SOL. Paid out ${hour.toFixed(3)} SOL every hour.`}>
+      aria-label={`Treasury ${treasurySol} SOL. Salary pool ${pool.toFixed(2)} SOL. Paid out ${hour.toFixed(3)} SOL every 15 minutes.`}>
       <defs>
         <pattern id="hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
           <rect width="9" height="9" fill="#F1E05A" />
@@ -67,7 +67,7 @@ export default function TreasuryTank({ treasurySol }: { treasurySol: number }) {
           style={{ animationDelay: `${i * 0.9}s` }} />
       ))}
       <g fontSize="15" fill="#EEECE2">
-        <text x={x + w / 2 + 40} y={y + h + 54} fontWeight="700">Every hour: 1/{PAYOUTS_PER_DAY} of the pool</text>
+        <text x={x + w / 2 + 40} y={y + h + 54} fontWeight="700">Every 15 minutes: 1/{PAYOUTS_PER_DAY} of the pool</text>
         <text x={x + w / 2 + 40} y={y + h + 74} fill="#9B9E92">{hour.toFixed(3)} SOL, split by points</text>
       </g>
     </svg>

@@ -1,7 +1,7 @@
 // Hourly payroll: share each finished hour's slice between the people who worked in it.
 // Called by the database's scheduler (pg_cron) through /api/cron/payroll. Server only.
 
-import { PAYOUTS_PER_DAY, SALARY_POOL_SHARE, WALLET_HOURLY_CAP } from "@/lib/config";
+import { PAYOUTS_PER_DAY, PERIOD_MS, SALARY_POOL_SHARE, WALLET_HOURLY_CAP } from "@/lib/config";
 import { rpc, select } from "./db";
 import { readTreasury } from "./treasury";
 
@@ -10,11 +10,12 @@ if (typeof window !== "undefined") {
 }
 
 const HOUR = 3_600_000;
+const PERIOD = PERIOD_MS; // one payroll round
 const CATCH_UP_HOURS = 48; // if the scheduler missed runs, settle up to two days back
 
 /** Finished hours that still need settling: the last hour, plus any older hour with points */
 async function hoursToSettle(now = Date.now()) {
-  const current = Math.floor(now / HOUR) * HOUR;
+  const current = Math.floor(now / PERIOD) * PERIOD;
   const since = new Date(current - CATCH_UP_HOURS * HOUR).toISOString();
   const [worked, settled] = await Promise.all([
     select("game_sessions", {
@@ -25,7 +26,7 @@ async function hoursToSettle(now = Date.now()) {
     select("payroll_hours", { columns: "hour_start", filters: { hour_start: `gte.${since}`, settled: "is.true" }, limit: 1000 }),
   ]);
   const done = new Set(settled.map((r: any) => Date.parse(r.hour_start)));
-  const todo = new Set<number>([current - HOUR]);
+  const todo = new Set<number>([current - PERIOD]);
   for (const r of worked) {
     const h = Date.parse(r.payroll_hour);
     if (h < current) todo.add(h);

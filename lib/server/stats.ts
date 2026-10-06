@@ -1,6 +1,6 @@
 // Public site numbers: treasury, payouts, workers, this hour, leaderboard, recent payouts. Server only.
 
-import { rankFor } from "@/lib/config";
+import { periodStart, rankFor } from "@/lib/config";
 import { select } from "./db";
 import { readTreasury } from "./treasury";
 
@@ -9,7 +9,7 @@ const DAY = 24 * HOUR;
 
 export async function siteStats() {
   const now = Date.now();
-  const hour = new Date(Math.floor(now / HOUR) * HOUR).toISOString();
+  const hour = new Date(periodStart(now)).toISOString(); // current payroll round
   const [treasury, paid, workers, hourRows, dayRows, hist] = await Promise.all([
     readTreasury().catch(() => null),
     select("payouts", {
