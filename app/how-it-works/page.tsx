@@ -5,6 +5,8 @@ import { useState } from "react";
 import {
   BASE_POINTS,
   COOLDOWN_MINUTES,
+  HAS_COOLDOWN,
+  SHIFT_PACE,
   DIFFICULTY_INFO,
   HOLD_TIERS,
   MIN_CLAIM_SOL,
@@ -60,7 +62,9 @@ const FAQ = [
   },
   {
     q: "What if I fail an assignment?",
-    a: `Below ${pct(QUALITY_THRESHOLD)} you get no points, and you still wait ${COOLDOWN_MINUTES} minutes for the next assignment. Closing the window doesn't reset the cooldown.`,
+    a: HAS_COOLDOWN
+      ? `Below ${pct(QUALITY_THRESHOLD)} you get no points, and you still wait ${COOLDOWN_MINUTES} minutes for the next assignment. Closing the window doesn't reset the cooldown.`
+      : `Below ${pct(QUALITY_THRESHOLD)} you get no points for that shift. Take a breath and start the next one.`,
   },
   {
     q: "Do I need to claim my salary?",
@@ -121,7 +125,7 @@ export default function HowItWorks() {
             ["Fees to workers", "100%"],
             ["Salary pool", `${pct(SALARY_POOL_SHARE)} of treasury`],
             ["Payday", "Every hour"],
-            ["Shift", `Every ${COOLDOWN_MINUTES} min`],
+            ["Shift", HAS_COOLDOWN ? `Every ${COOLDOWN_MINUTES} min` : "Any time"],
           ].map(([k, v], i) => (
             <div key={k} className={`p-4 ${i % 2 ? "border-l" : ""} ${i > 1 ? "border-t sm:border-t-0" : ""} ${i === 2 ? "sm:border-l" : ""} border-rule`}>
               <dt className="text-xs text-inksoft">{k}</dt>
@@ -136,8 +140,7 @@ export default function HowItWorks() {
             new problem: it has more money than tasks it wants to do itself.
           </p>
           <p>
-            So it&rsquo;s hiring. {TOKEN_TICKER} holders get small assignments from an AI manager every{" "}
-            {COOLDOWN_MINUTES} minutes and get paid in SOL. The money comes from the coin&rsquo;s own trading fees, and
+            So it&rsquo;s hiring. {TOKEN_TICKER} holders get small assignments from an AI manager {SHIFT_PACE} and get paid in SOL. The money comes from the coin&rsquo;s own trading fees, and
             every single lamport of it goes to the employees.
           </p>
           <div className="mt-2">
@@ -150,7 +153,7 @@ export default function HowItWorks() {
             {[
               ["Buy the coin", `Get at least ${MIN_HOLD.toLocaleString("en-US")} ${TOKEN_TICKER} (0.01% of supply) on pump.fun and keep it in your wallet.`],
               ["Paste your address", "Open the Office and paste your Solana address. No wallet connection, no signature. Or try a shift as a guest first."],
-              ["Work a shift", `Pick Part-time, Full-time or Overtime and play the mini-game you're given. One shift every ${COOLDOWN_MINUTES} minutes.`],
+              ["Work a shift", `Pick Part-time, Full-time or Overtime and play the mini-game you're given. Shifts ${SHIFT_PACE}.`],
               ["Get paid every hour", "At the top of each hour your share of the payroll is sent to your wallet automatically. No claiming."],
             ].map(([t, b], i) => (
               <li key={t} className="sheet p-5">

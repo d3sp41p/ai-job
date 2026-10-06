@@ -36,7 +36,7 @@ export const LINES = {
   ],
   cooldown: [
     "Break time. Hydrate. Productive humans are hydrated humans.",
-    "Go touch grass. Report back in 30 minutes.",
+    "Go touch grass. Report back when you're ready.",
   ],
   claim: [
     "Salary released. Spend it wisely. Or on more coins. I won't judge. I will log it.",

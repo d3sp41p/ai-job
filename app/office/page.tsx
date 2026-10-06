@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   BASE_POINTS,
   COOLDOWN_MINUTES,
+  SHIFT_PACE,
   DIFFICULTY_INFO,
   MIN_CLAIM_SOL,
   MIN_HOLD,
@@ -68,7 +69,7 @@ export default function OfficePage() {
 
   const progress = rank.next ? (emp.tasksCompleted - rank.min) / (rank.next.min - rank.min) : 1;
   const onCooldown = emp.cooldownEndsAt !== null && emp.cooldownEndsAt > now;
-  const breakLeft = onCooldown ? (emp.cooldownEndsAt! - now) / (COOLDOWN_MINUTES * 60_000) : 0;
+  const breakLeft = onCooldown ? (emp.cooldownEndsAt! - now) / (Math.max(1, COOLDOWN_MINUTES) * 60_000) : 0;
   const eligible = emp.isGuest || emp.balance >= MIN_HOLD;
   const nextHour = Math.ceil((now + 1) / 3_600_000) * 3_600_000;
   const hourLeft = nextHour - now;
@@ -249,7 +250,7 @@ export default function OfficePage() {
             <h1 className="font-condensed text-4xl sm:text-5xl font-black">
               {onCooldown ? "Coffee break" : "Your next assignment"}
             </h1>
-            <span className="text-sm text-inksoft">One assignment every {COOLDOWN_MINUTES} minutes</span>
+            <span className="text-sm text-inksoft">Assignments {SHIFT_PACE}</span>
           </div>
 
           {!eligible ? (

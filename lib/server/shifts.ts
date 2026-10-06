@@ -7,6 +7,7 @@
 import { randomInt } from "node:crypto";
 import {
   COOLDOWN_MINUTES,
+  HAS_COOLDOWN,
   GUEST_WINDOW_MINUTES,
   MIN_HOLD,
   MIN_SHIFT_SECONDS,
@@ -67,6 +68,12 @@ export async function startShift(s: Session, difficulty: Difficulty) {
     const hold = await getHoldStatus(s.a, { fresh: true });
     mode = hold.eligible ? "paid" : "practice";
     overtime = mode === "paid" && (await shiftsLast24h(s.a)) >= 12;
+  }
+
+  // without a break, a shift left open (closed tab) must not block the next one
+  if (!HAS_COOLDOWN) {
+    const or = s.a ? `(device_id.eq.${s.d},wallet.eq.${s.a})` : `(device_id.eq.${s.d})`;
+    await update("game_sessions", { status: "eq.active", or }, { status: "abandoned" });
   }
 
   const pool = GAMES.filter((g) => g.difficulty === difficulty);

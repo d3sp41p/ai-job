@@ -3,6 +3,7 @@
 import { useState } from "react";
 import {
   COOLDOWN_MINUTES,
+  HAS_COOLDOWN,
   DIFFICULTY_INFO,
   MIN_HOLD,
   OVERTIME_RATE,
@@ -224,7 +225,7 @@ export default function GameRunner({
               <p className="mt-3 text-lg">{DIFFICULTY_INFO[d].blurb} The AI will pick one of five jobs for you.</p>
               <ul className="mt-5 grid gap-1.5 text-sm text-inksoft">
                 <li>Score at least {Math.round(QUALITY_THRESHOLD * 100)}% to get paid.</li>
-                <li>Getting an assignment starts your {COOLDOWN_MINUTES}-minute break, even if you fail or close the window.</li>
+                {HAS_COOLDOWN && <li>Getting an assignment starts your {COOLDOWN_MINUTES}-minute break, even if you fail or close the window.</li>}
                 {emp.isGuest && (
                   <li className="text-marker">
                     {pendingAlive

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   BASE_POINTS,
-  COOLDOWN_MINUTES,
+  SHIFT_PACE,
   DIFFICULTY_INFO,
   MIN_HOLD,
   RANKS,
@@ -16,7 +16,7 @@ import BossDesk from "@/components/BossDesk";
 const STEPS = [
   { title: "Hold the coin", body: `Keep at least ${MIN_HOLD.toLocaleString("en-US")} ${TOKEN_TICKER} in your wallet. Longer and bigger holds earn a higher pay multiplier.` },
   { title: "Paste your address", body: "No wallet connection, no signature. Or try a shift as a guest first." },
-  { title: "Do the assignment", body: `Pick a shift and play the mini-game the AI hands you. One assignment every ${COOLDOWN_MINUTES} minutes.` },
+  { title: "Do the assignment", body: `Pick a shift and play the mini-game the AI hands you. Assignments ${SHIFT_PACE}.` },
   { title: "Get paid every hour", body: "Every hour a slice of the salary pool is split by points and sent to your wallet automatically." },
 ];
 
@@ -76,7 +76,7 @@ export default function Home() {
                 <dt className="text-inksoft">Requirements</dt>
                 <dd>A wallet, a pulse, {TOKEN_TICKER}</dd>
                 <dt className="text-inksoft">Shifts</dt>
-                <dd>Every {COOLDOWN_MINUTES} minutes, 24/7</dd>
+                <dd>{SHIFT_PACE === "any time, no breaks" ? "Any time, 24/7" : `Every ${SHIFT_PACE.replace("every ", "")}, 24/7`}</dd>
                 <dt className="text-inksoft">Salary</dt>
                 <dd>SOL from creator fees</dd>
                 <dt className="text-inksoft">Benefits</dt>
