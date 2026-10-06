@@ -158,7 +158,7 @@ export default function Home() {
         <div>
           <h2 className="font-condensed text-5xl font-extrabold">100% of fees go to the workers</h2>
           <p className="mt-3 text-inksoft max-w-md">
-            Every trade feeds the treasury. {Math.round(SALARY_POOL_SHARE * 100)}% of it is always the salary pool, paid out every 15 minutes. The bigger
+            Every trade feeds the treasury. Every 15 minutes a slice of it ({((SALARY_POOL_SHARE / 96) * 100).toFixed(2)}%) is paid out as salaries. The bigger
             the treasury, the bigger every salary. All of it is public.
           </p>
           <Link href="/dashboard/" className="btn btn-plain mt-6">

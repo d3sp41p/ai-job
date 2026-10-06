@@ -37,8 +37,10 @@ export const GUEST_WINDOW_MINUTES = 30; // only the first passed guest shift in 
 
 // ---- Economy ----
 // 100% of creator fees go to the treasury. Nothing goes to the team.
-// Share of the treasury paid out per day. 0.25 since 2026-10-06. Override: NEXT_PUBLIC_SALARY_POOL_SHARE.
-export const SALARY_POOL_SHARE = Number(process.env.NEXT_PUBLIC_SALARY_POOL_SHARE) || 0.25;
+// Share of the treasury paid out per day: 1.0 = 100% (team decision 2026-10-06, aiming at ~$2–5 a task).
+// Paid as 1/96 of it every round, so it shrinks with the treasury but never hits zero.
+// Override: NEXT_PUBLIC_SALARY_POOL_SHARE.
+export const SALARY_POOL_SHARE = Number(process.env.NEXT_PUBLIC_SALARY_POOL_SHARE) || 1;
 // Payroll rounds: the pool is paid out in slices every PAYROLL_MINUTES (team decision 2026-10-06: 15).
 // The database buckets shifts into the same periods (payroll_period() in 0006_payroll_15min.sql) — change both together.
 export const PAYROLL_MINUTES = 15;
@@ -64,9 +66,9 @@ export function hourlyPay(treasurySol: number, myPoints: number, everyonePoints:
 }
 
 export const BASE_POINTS: Record<Difficulty, number> = {
-  easy: 10,
-  medium: 25,
-  hard: 60,
+  easy: 20,
+  medium: 35,
+  hard: 50,
 };
 
 export const DIFFICULTY_INFO: Record<

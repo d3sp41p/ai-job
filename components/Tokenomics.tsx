@@ -21,7 +21,7 @@ export default function Tokenomics({ title = "Payroll tokenomics" }: { title?: s
   const flow = ["Every trade", "Creator fees", "Treasury", `${pct(SALARY_POOL_SHARE)} a day`, `${PAYOUTS_PER_DAY} rounds`, "Your wallet"];
   const tiles: [string, string, string][] = [
     ["Fees to workers", "100%", "The team takes 0. Every lamport of creator fees goes to the payroll."],
-    ["Salary pool", `${pct(SALARY_POOL_SHARE)} / day`, "Always a share of the treasury, so it can never run dry."],
+    ["Salary pool", `${pct(SALARY_POOL_SHARE)} / day`, `Paid as ${((SALARY_POOL_SHARE / PAYOUTS_PER_DAY) * 100).toFixed(2)}% of the treasury every round, so it never runs dry.`],
     ["Payday", `Every ${PAYROLL_MINUTES} min`, `${PAYOUTS_PER_DAY} payroll rounds a day, sent straight to your address.`],
     ["Shifts", HAS_COOLDOWN ? `Every ${COOLDOWN_MINUTES} min` : "Any time", `Easy ${BASE_POINTS.easy}, Medium ${BASE_POINTS.medium}, Hard ${BASE_POINTS.hard} base points.`],
     ["To get hired", `${(MIN_HOLD / 1000).toLocaleString("en-US")}K`, `${TOKEN_TICKER} on your address. Paid from the first minute you hold it.`],

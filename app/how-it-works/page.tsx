@@ -225,7 +225,7 @@ export default function HowItWorks() {
           </div>
           <ol className="grid gap-3">
             {[
-              [`The pool is always ${pct(SALARY_POOL_SHARE)} of the treasury.`, `Treasury ${fmtSol(STATS.treasurySol)} SOL means a salary pool of ${fmtSol(pool)} SOL. Treasury grows, pool grows.`],
+              [`Every round, ${((SALARY_POOL_SHARE / PAYOUTS_PER_DAY) * 100).toFixed(2)}% of the treasury is paid out.`, `Treasury ${fmtSol(STATS.treasurySol)} SOL means a salary pool of ${fmtSol(pool)} SOL. Treasury grows, pool grows.`],
               [`Every 15 minutes, 1/${PAYOUTS_PER_DAY} of the pool is paid out.`, `Right now that's ${hourlyPayroll(STATS.treasurySol).toFixed(5)} SOL every 15 minutes, around the clock.`],
               ["The 15-minute slice is split by points.", "Everyone who finished a shift that hour gets a share that matches their points."],
               ["The next slice is counted from what's left.", `After a payout the treasury is a bit smaller, new fees top it up, and the next slice is ${pct(SALARY_POOL_SHARE)} ÷ ${PAYOUTS_PER_DAY} of the new balance. It never runs dry.`],
