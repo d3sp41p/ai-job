@@ -7,6 +7,7 @@ import { fmtSol, solDecimals } from "@/lib/format";
 import CountUp from "@/components/CountUp";
 import { formatDuration, timeAgo, useNow } from "@/components/useNow";
 import TreasuryChart from "@/components/TreasuryChart";
+import Tokenomics from "@/components/Tokenomics";
 import { hourlyPayroll, salaryPool, SALARY_POOL_SHARE, PERIOD_MS } from "@/lib/config";
 
 const solscan = (path: string) => `https://solscan.io/${path}`;
@@ -91,6 +92,10 @@ export default function DashboardPage() {
       </dl>
 
       {/* Wallets */}
+      <div className="mt-6">
+        <Tokenomics title="The rules" />
+      </div>
+
       <section className="mt-6 sheet p-5 sm:p-6">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="font-condensed text-3xl font-black">Company wallets</h2>

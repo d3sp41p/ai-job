@@ -11,6 +11,7 @@ import {
   type Difficulty,
 } from "@/lib/config";
 import HomeNumbers from "@/components/HomeNumbers";
+import Tokenomics from "@/components/Tokenomics";
 import CountUp from "@/components/CountUp";
 import BossDesk from "@/components/BossDesk";
 
@@ -166,6 +167,9 @@ export default function Home() {
         </div>
         <HomeNumbers />
       </section>
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 pb-16">
+        <Tokenomics />
+      </div>
     </>
   );
 }

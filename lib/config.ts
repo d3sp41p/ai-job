@@ -7,14 +7,14 @@ export const BUY_URL = (process.env.NEXT_PUBLIC_BUY_URL || "").trim();
 
 export type Difficulty = "easy" | "medium" | "hard";
 
-// Break between shifts. 0 = no break (team decision 2026-10-06). Set NEXT_PUBLIC_COOLDOWN_MINUTES in Vercel to bring it back.
-export const COOLDOWN_MINUTES = Math.max(0, Number(process.env.NEXT_PUBLIC_COOLDOWN_MINUTES) || 0);
+// Break between shifts: 10 minutes (team decision 2026-10-06), 0 = no break. Set NEXT_PUBLIC_COOLDOWN_MINUTES in Vercel to bring it back.
+export const COOLDOWN_MINUTES = Math.max(0, Number(process.env.NEXT_PUBLIC_COOLDOWN_MINUTES ?? 10) || 0);
 export const HAS_COOLDOWN = COOLDOWN_MINUTES > 0;
 /** "every 30 minutes" / "any time" for site copy */
 export const SHIFT_PACE = HAS_COOLDOWN ? `every ${COOLDOWN_MINUTES} minutes` : "any time, no breaks";
 export const TOTAL_SUPPLY = 1_000_000_000; // pump.fun coins have 1B supply
 export const MIN_HOLD = TOTAL_SUPPLY * 0.0001; // 0.01% of supply = 100,000 tokens
-export const MIN_CLAIM_SOL = Number(process.env.NEXT_PUBLIC_MIN_CLAIM_SOL) || 0.002; // smallest payout sent
+export const MIN_CLAIM_SOL = Number(process.env.NEXT_PUBLIC_MIN_CLAIM_SOL) || 0.001; // smallest payout sent
 // Safety limits for automatic payouts. Tiny while testing on mainnet; raise them before launch
 // (or set MAX_PAYOUT_SOL / DAILY_PAYOUT_CAP_SOL in Vercel to override without a code change).
 export const MAX_PAYOUT_SOL = Number(process.env.MAX_PAYOUT_SOL) || 0.02; // one address, one payout
@@ -37,8 +37,8 @@ export const GUEST_WINDOW_MINUTES = 30; // only the first passed guest shift in 
 
 // ---- Economy ----
 // 100% of creator fees go to the treasury. Nothing goes to the team.
-// Share of the treasury paid out per day. 0.24 since 2026-10-06 (+20% salaries). Override: NEXT_PUBLIC_SALARY_POOL_SHARE.
-export const SALARY_POOL_SHARE = Number(process.env.NEXT_PUBLIC_SALARY_POOL_SHARE) || 0.24;
+// Share of the treasury paid out per day. 0.25 since 2026-10-06. Override: NEXT_PUBLIC_SALARY_POOL_SHARE.
+export const SALARY_POOL_SHARE = Number(process.env.NEXT_PUBLIC_SALARY_POOL_SHARE) || 0.25;
 // Payroll rounds: the pool is paid out in slices every PAYROLL_MINUTES (team decision 2026-10-06: 15).
 // The database buckets shifts into the same periods (payroll_period() in 0006_payroll_15min.sql) — change both together.
 export const PAYROLL_MINUTES = 15;
@@ -47,7 +47,7 @@ export const PAYOUTS_PER_DAY = (24 * 60) / PAYROLL_MINUTES; // 96 slices a day
 export const periodStart = (ms: number) => Math.floor(ms / PERIOD_MS) * PERIOD_MS;
 export const PAID_SHIFTS_PER_DAY = 12; // full pay for the first 12 shifts in 24 hours
 export const OVERTIME_RATE = 0.25; // shifts after that earn 25% of points
-export const WALLET_HOURLY_CAP = Number(process.env.NEXT_PUBLIC_WALLET_HOURLY_CAP) || 0.25; // one wallet takes at most 25% of an hourly slice
+export const WALLET_HOURLY_CAP = Number(process.env.NEXT_PUBLIC_WALLET_HOURLY_CAP) || 0.5; // one wallet takes at most 50% of a payroll round
 export const QUALITY_THRESHOLD = 0.5; // performance below 50% earns nothing
 
 export function salaryPool(treasurySol: number) {
