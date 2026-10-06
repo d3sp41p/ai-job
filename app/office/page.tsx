@@ -71,7 +71,8 @@ export default function OfficePage() {
   const progress = rank.next ? (emp.tasksCompleted - rank.min) / (rank.next.min - rank.min) : 1;
   const onCooldown = emp.cooldownEndsAt !== null && emp.cooldownEndsAt > now;
   const breakLeft = onCooldown ? (emp.cooldownEndsAt! - now) / (Math.max(1, COOLDOWN_MINUTES) * 60_000) : 0;
-  const eligible = emp.isGuest || emp.balance >= MIN_HOLD;
+  // unknown balance (chain read failed) is not "no coins": the server checks again at shift start
+  const eligible = emp.isGuest || !emp.balanceKnown || emp.balance >= MIN_HOLD;
   const nextHour = Math.ceil((now + 1) / PERIOD_MS) * PERIOD_MS;
   const hourLeft = nextHour - now;
   const slice = hourlyPayroll(STATS.treasurySol);

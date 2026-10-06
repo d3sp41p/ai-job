@@ -38,6 +38,7 @@ type EmployeeState = Work & {
   address: string; // "" = guest
   locked: boolean;
   balance: number;
+  balanceKnown: boolean; // false until the chain read worked (Helius can be busy)
   daysHeld: number;
   tasksCompleted: number;
   unpaidSol: number; // paid automatically at the top of the hour once >= MIN_CLAIM_SOL
@@ -66,6 +67,7 @@ const initial: EmployeeState = {
   address: "",
   locked: false,
   balance: 0,
+  balanceKnown: false,
   daysHeld: 0,
   tasksCompleted: 0,
   unpaidSol: 0,
@@ -78,9 +80,10 @@ const initial: EmployeeState = {
 async function fetchWallet(address: string): Promise<Partial<EmployeeState>> {
   try {
     const res = await fetch(`/api/wallet/${address}`, { cache: "no-store" });
-    if (!res.ok) return {};
+    if (!res.ok) return {}; // keep the last known numbers
     const w = await res.json();
     return {
+      balanceKnown: true,
       balance: Number(w.balance) || 0,
       daysHeld: Number(w.daysHeld) || 0,
       tasksCompleted: Number(w.tasksCompleted) || 0,

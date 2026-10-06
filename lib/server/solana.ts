@@ -66,18 +66,33 @@ export function decodeBase58(a: string): Buffer {
 }
 
 // ---------- JSON-RPC ----------
+// Public Solana node: a backup for plain reads when Helius says "too many requests"
+const publicRpc = () => (network() === "mainnet" ? "https://api.mainnet-beta.solana.com" : "https://api.devnet.solana.com");
+
 async function rpc<T>(method: string, params: unknown[]): Promise<T> {
-  let res: Response;
-  try {
-    res = await fetch(rpcUrl(), {
+  const call = (url: string) =>
+    fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
       cache: "no-store",
     });
+  let res: Response | null = null;
+  try {
+    res = await call(rpcUrl());
   } catch {
-    throw new ChainError("Solana RPC unreachable", "rpc_down");
+    res = null;
   }
+  if (!res || res.status === 429 || res.status >= 500) {
+    // Helius busy or down: try the public node once
+    try {
+      const backup = await call(publicRpc());
+      if (backup.ok) res = backup;
+    } catch {
+      /* keep the Helius answer */
+    }
+  }
+  if (!res) throw new ChainError("Solana RPC unreachable", "rpc_down");
   if (res.status === 401 || res.status === 403) throw new ChainError("Helius key rejected", "bad_key");
   if (res.status === 429) throw new ChainError("Helius rate limit", "rate_limited");
   const body = await res.json().catch(() => null);

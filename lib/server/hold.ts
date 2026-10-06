@@ -3,7 +3,7 @@
 // (used before a shift starts and before a payout).
 
 import { MIN_HOLD, holdMultiplier, streakMultiplier, rankFor } from "@/lib/config";
-import { getHoldInfo } from "./solana";
+import { getHoldInfo, getTokenBalance } from "./solana";
 import { insert, select } from "./db";
 
 export const HOLD_CACHE_MINUTES = 10;
@@ -45,19 +45,35 @@ function build(address: string, info: Awaited<ReturnType<typeof getHoldInfo>>, e
 }
 
 export async function getHoldStatus(address: string, opts: { fresh?: boolean } = {}): Promise<HoldStatus> {
-  if (!opts.fresh) {
-    const rows = await select("wallets", {
-      columns: "hold_cache,hold_cached_at",
-      filters: { address: `eq.${address}` },
-      limit: 1,
-    }).catch(() => []);
-    const r = rows[0];
-    if (r?.hold_cache && r.hold_cached_at && Date.now() - Date.parse(r.hold_cached_at) < HOLD_CACHE_MINUTES * 60_000) {
-      return r.hold_cache as HoldStatus;
-    }
+  const rows = await select("wallets", {
+    columns: "hold_cache,hold_cached_at",
+    filters: { address: `eq.${address}` },
+    limit: 1,
+  }).catch(() => []);
+  const r = rows[0];
+  const cached = (r?.hold_cache as HoldStatus | undefined) ?? undefined;
+  if (!opts.fresh && cached && r.hold_cached_at && Date.now() - Date.parse(r.hold_cached_at) < HOLD_CACHE_MINUTES * 60_000) {
+    return cached;
   }
 
-  const info = await getHoldInfo(address, MIN_HOLD);
+  let info: Awaited<ReturnType<typeof getHoldInfo>>;
+  try {
+    info = await getHoldInfo(address, MIN_HOLD);
+  } catch (e) {
+    // The history read is the heavy one and hits rate limits first. Read just the balance
+    // (cheap) and keep the streak / 24h minimum from the last good check.
+    const balance = await getTokenBalance(address).catch(() => null);
+    if (balance === null) {
+      if (cached) return cached; // stale beats nothing
+      throw e;
+    }
+    info = {
+      balance,
+      minBalance24h: Math.min(balance, cached?.minBalance24h ?? balance),
+      holdStart: balance >= MIN_HOLD && cached?.holdStart ? Date.parse(cached.holdStart) : null,
+      historyComplete: false,
+    };
+  }
 
   // our own recorded checks are a second source for the 24h minimum
   const since = new Date(Date.now() - 24 * 3600_000).toISOString();
