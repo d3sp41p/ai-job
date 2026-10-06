@@ -7,8 +7,8 @@ export const BUY_URL = (process.env.NEXT_PUBLIC_BUY_URL || "").trim();
 
 export type Difficulty = "easy" | "medium" | "hard";
 
-// Break between shifts: 10 minutes (team decision 2026-10-06), 0 = no break. Set NEXT_PUBLIC_COOLDOWN_MINUTES in Vercel to bring it back.
-export const COOLDOWN_MINUTES = Math.max(0, Number(process.env.NEXT_PUBLIC_COOLDOWN_MINUTES ?? 10) || 0);
+// Break between shifts: 30 minutes (team decision 2026-10-06, evening), 0 = no break. Set NEXT_PUBLIC_COOLDOWN_MINUTES in Vercel to bring it back.
+export const COOLDOWN_MINUTES = Math.max(0, Number(process.env.NEXT_PUBLIC_COOLDOWN_MINUTES ?? 30) || 0);
 export const HAS_COOLDOWN = COOLDOWN_MINUTES > 0;
 /** "every 30 minutes" / "any time" for site copy */
 export const SHIFT_PACE = HAS_COOLDOWN ? `every ${COOLDOWN_MINUTES} minutes` : "any time, no breaks";
