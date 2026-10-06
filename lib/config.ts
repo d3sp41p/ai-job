@@ -14,7 +14,7 @@ export const HAS_COOLDOWN = COOLDOWN_MINUTES > 0;
 export const SHIFT_PACE = HAS_COOLDOWN ? `every ${COOLDOWN_MINUTES} minutes` : "any time, no breaks";
 export const TOTAL_SUPPLY = 1_000_000_000; // pump.fun coins have 1B supply
 export const MIN_HOLD = TOTAL_SUPPLY * 0.0001; // 0.01% of supply = 100,000 tokens
-export const MIN_CLAIM_SOL = 0.01;
+export const MIN_CLAIM_SOL = Number(process.env.NEXT_PUBLIC_MIN_CLAIM_SOL) || 0.002; // smallest payout sent
 // Safety limits for automatic payouts. Tiny while testing on mainnet; raise them before launch
 // (or set MAX_PAYOUT_SOL / DAILY_PAYOUT_CAP_SOL in Vercel to override without a code change).
 export const MAX_PAYOUT_SOL = Number(process.env.MAX_PAYOUT_SOL) || 0.02; // one address, one payout
@@ -41,7 +41,7 @@ export const SALARY_POOL_SHARE = 0.2; // salary pool is always 20% of the treasu
 export const PAYOUTS_PER_DAY = 24; // the pool is paid out in hourly slices: 1/24 each hour
 export const PAID_SHIFTS_PER_DAY = 12; // full pay for the first 12 shifts in 24 hours
 export const OVERTIME_RATE = 0.25; // shifts after that earn 25% of points
-export const WALLET_HOURLY_CAP = 0.05; // one wallet takes at most 5% of an hourly slice
+export const WALLET_HOURLY_CAP = Number(process.env.NEXT_PUBLIC_WALLET_HOURLY_CAP) || 0.25; // one wallet takes at most 25% of an hourly slice
 export const QUALITY_THRESHOLD = 0.5; // performance below 50% earns nothing
 
 export function salaryPool(treasurySol: number) {
