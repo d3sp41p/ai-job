@@ -253,16 +253,21 @@ export default function OfficePage() {
             <span className="text-sm text-inksoft">Assignments {SHIFT_PACE}</span>
           </div>
 
-          {!eligible ? (
+          {/* a hint only: the server re-reads the balance when the shift starts (the shown one can be up to 10 min old) */}
+          {!eligible && (
             <div className="mt-4 border-l-4 border-stamp pl-3">
-              <p>You need at least {MIN_HOLD.toLocaleString("en-US")} {TOKEN_TICKER} to take assignments.</p>
+              <p>
+                We see less than {MIN_HOLD.toLocaleString("en-US")} {TOKEN_TICKER} on your address, so shifts are unpaid practice. Just
+                bought? Start a shift anyway: the AI checks your wallet again first.
+              </p>
               {BUY_URL && (
                 <a href={BUY_URL} target="_blank" rel="noreferrer" className="btn btn-marker mt-3">
                   Buy {TOKEN_TICKER} on pump.fun
                 </a>
               )}
             </div>
-          ) : onCooldown ? (
+          )}
+          {onCooldown ? (
             <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
               <CoffeeBreak left={breakLeft} />
               <div>
