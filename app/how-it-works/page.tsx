@@ -225,10 +225,10 @@ export default function HowItWorks() {
           </div>
           <ol className="grid gap-3">
             {[
-              ["The pool is always 20% of the treasury.", `Treasury ${fmtSol(STATS.treasurySol)} SOL means a salary pool of ${fmtSol(pool)} SOL. Treasury grows, pool grows.`],
+              [`The pool is always ${pct(SALARY_POOL_SHARE)} of the treasury.`, `Treasury ${fmtSol(STATS.treasurySol)} SOL means a salary pool of ${fmtSol(pool)} SOL. Treasury grows, pool grows.`],
               [`Every 15 minutes, 1/${PAYOUTS_PER_DAY} of the pool is paid out.`, `Right now that's ${hourlyPayroll(STATS.treasurySol).toFixed(5)} SOL every 15 minutes, around the clock.`],
               ["The 15-minute slice is split by points.", "Everyone who finished a shift that hour gets a share that matches their points."],
-              ["The next slice is counted from what's left.", "After a payout the treasury is a bit smaller, new fees top it up, and the next slice is 20% ÷ 24 of the new balance. It never runs dry."],
+              ["The next slice is counted from what's left.", `After a payout the treasury is a bit smaller, new fees top it up, and the next slice is ${pct(SALARY_POOL_SHARE)} ÷ ${PAYOUTS_PER_DAY} of the new balance. It never runs dry.`],
             ].map(([t, b]) => (
               <li key={t} className="flex gap-4">
                 <span className="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-marker" aria-hidden />

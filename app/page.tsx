@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {
+  SALARY_POOL_SHARE,
   BASE_POINTS,
   SHIFT_PACE,
   DIFFICULTY_INFO,
@@ -156,7 +157,7 @@ export default function Home() {
         <div>
           <h2 className="font-condensed text-5xl font-extrabold">100% of fees go to the workers</h2>
           <p className="mt-3 text-inksoft max-w-md">
-            Every trade feeds the treasury. 20% of it is always the salary pool, paid out every 15 minutes. The bigger
+            Every trade feeds the treasury. {Math.round(SALARY_POOL_SHARE * 100)}% of it is always the salary pool, paid out every 15 minutes. The bigger
             the treasury, the bigger every salary. All of it is public.
           </p>
           <Link href="/dashboard/" className="btn btn-plain mt-6">

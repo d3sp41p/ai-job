@@ -37,7 +37,8 @@ export const GUEST_WINDOW_MINUTES = 30; // only the first passed guest shift in 
 
 // ---- Economy ----
 // 100% of creator fees go to the treasury. Nothing goes to the team.
-export const SALARY_POOL_SHARE = 0.2; // salary pool is always 20% of the treasury
+// Share of the treasury paid out per day. 0.24 since 2026-10-06 (+20% salaries). Override: NEXT_PUBLIC_SALARY_POOL_SHARE.
+export const SALARY_POOL_SHARE = Number(process.env.NEXT_PUBLIC_SALARY_POOL_SHARE) || 0.24;
 // Payroll rounds: the pool is paid out in slices every PAYROLL_MINUTES (team decision 2026-10-06: 15).
 // The database buckets shifts into the same periods (payroll_period() in 0006_payroll_15min.sql) — change both together.
 export const PAYROLL_MINUTES = 15;

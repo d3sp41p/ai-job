@@ -220,6 +220,7 @@ CRON_SECRET=
 - Дальше: см. «Прогресс» ниже.
 
 ## Прогресс (обновлено 2026-10-06)
+Зарплатный пул 20% → 24% казны в сутки (+20% к зарплатам, 2026-10-06), NEXT_PUBLIC_SALARY_POOL_SHARE.
 ЗАРПЛАТА КАЖДЫЕ 15 МИНУТ (решение команды 2026-10-06): `PAYROLL_MINUTES = 15`, `PAYOUTS_PER_DAY = 96` в config;
 в базе `payroll_period()` = date_bin(15 min) из `0006_payroll_15min.sql` (finish_shift, credit_guest_shift, settle_payroll_hour),
 pg_cron `2,17,32,47 * * * *`. Колонки называются payroll_hour/hour_start, но это начало 15-минутного раунда.

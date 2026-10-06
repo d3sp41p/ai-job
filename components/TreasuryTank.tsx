@@ -2,7 +2,7 @@
 
 import { hourlyPayroll, PAYOUTS_PER_DAY, salaryPool, SALARY_POOL_SHARE } from "@/lib/config";
 
-// Illustration of the payroll: fees pour into the treasury tank, the top 20% is the
+// Illustration of the payroll: fees pour into the treasury tank, the top share is the
 // salary pool, and a tap releases 1/96 of the pool every 15 minutes to the employees.
 export default function TreasuryTank({ treasurySol }: { treasurySol: number }) {
   const pool = salaryPool(treasurySol);
